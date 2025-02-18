@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 FROM python:3.10-alpine
 WORKDIR /app
-ENV FLASK_APP=ipmd.py
+ENV FLASK_APP=app.py
 RUN apk add --no-cache gcc musl-dev linux-headers mariadb-connector-c
 COPY requirements.txt requirements.txt
 RUN pip3 install -r requirements.txt
