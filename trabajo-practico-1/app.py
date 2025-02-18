@@ -1,6 +1,6 @@
 from flask import Flask
 import json
-import mariadb
+# import mariadb
 
 # mariadb config
 config = {
@@ -19,22 +19,23 @@ def hello():
 
 @app.get("/data")
 def get_database():
-    # connection for MariaDB
-    conn = mariadb.connect(**config)
-    # create a connection cursor
-    cur = conn.cursor()
-    # execute a SQL statement
-    cur.execute("SELECT * FROM messages")
-
-    # serialize results into JSON
-    row_headers=[x[0] for x in cur.description]
-    rv = cur.fetchall()
-    json_data = []
-    for result in rv:
-        json_data.append(dict(zip(row_headers,result)))
-
-    # return the results!
-    return json.dumps(json_data)
+    # # connection for MariaDB
+    # conn = mariadb.connect(**config)
+    # # create a connection cursor
+    # cur = conn.cursor()
+    # # execute a SQL statement
+    # cur.execute("SELECT * FROM messages")
+    #
+    # # serialize results into JSON
+    # row_headers=[x[0] for x in cur.description]
+    # rv = cur.fetchall()
+    # json_data = []
+    # for result in rv:
+    #     json_data.append(dict(zip(row_headers,result)))
+    #
+    # # return the results!
+    # return json.dumps(json_data)
+    return
 
 @app.get("/data/<int:id>")
 def get_id(id):
