@@ -1,0 +1,3 @@
+flask
+json2
+mariadb
