@@ -1,15 +1,46 @@
 from flask import Flask
-import json
-# import mariadb
+import mysql.connector
 
 # mariadb config
 config = {
-    'host': '172.19.0.3',
+    # 'host': 'mariadb',
+    'host': '172.18.0.3',
     'port': 3306,
     'user': 'wolfxyz',
     'password': 'wolfxyz',
-    'database': 'ipmd'
+    'database': 'ipmd',
 }
+
+"""
+Ya se porque no se conecta, el servidor de mariadb tarda un poco en iniciar y a flask no le da tiempo a conectarse
+si lo dejas ejecutando unos segundos veras que empieza a hacer conexiones correctas
+"""
+while True:
+    try:
+        # Establecer conexión
+        conn = mysql.connector.connect(**config)
+    
+        if conn.is_connected():
+            print("✅ Conexión exitosa a MariaDB")
+
+            # Crear un cursor
+            cursor = conn.cursor()
+
+            # Ejecutar una consulta
+            cursor.execute("SHOW TABLES;")
+            tables = cursor.fetchall()
+        
+            # Mostrar las tablas disponibles
+            for table in tables:
+                print(table)
+
+            # Cerrar la conexión
+            cursor.close()
+            conn.close()
+            print("✅ Conexión cerrada correctamente")
+
+    except mysql.connector.Error as e:
+        print(f"❌ Error al conectar a MariaDB: {e}")
 
 app = Flask(__name__)
 
@@ -35,7 +66,7 @@ def get_database():
     #
     # # return the results!
     # return json.dumps(json_data)
-    return
+    return "hola"
 
 @app.get("/data/<int:id>")
 def get_id(id):
@@ -54,4 +85,4 @@ def delete_message(id):
     return f'<p>Deleting {id} post...</p>'
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    app.run(host="0.0.0.0", port=5000, debug=True)

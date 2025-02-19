@@ -1,3 +1,2 @@
 flask
-json2
-# mariadb
+mysql-connector-python

@@ -6,8 +6,6 @@ services:
       - "5000:5000"
     depends_on:
       - mariadb
-    volumes:
-      - .:/code
 
   mariadb:
     container_name: "mariadb"
