@@ -12,3 +12,8 @@ CREATE TABLE IF NOT EXISTS messages (
   sid TEXT NOT NULL,
   PRIMARY KEY(clid)
 );
+
+INSERT INTO messages (clid, mess, sid) VALUES
+(1, 'Hello world from messages table!', 'abc'),
+(2, 'Test', 'def'),
+(3, 'Yeray2 is the best team from ipmd', 'abc');
