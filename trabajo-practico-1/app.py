@@ -1,5 +1,6 @@
 from flask import Flask
 import mysql.connector
+import json
 
 # mariadb config
 config = {
@@ -11,77 +12,69 @@ config = {
     'database': 'ipmd',
 }
 
-"""
-Ya se porque no se conecta, el servidor de mariadb tarda un poco en iniciar y a flask no le da tiempo a conectarse
-si lo dejas ejecutando unos segundos veras que empieza a hacer conexiones correctas
-"""
-while True:
-    try:
-        # Establecer conexión
-        conn = mysql.connector.connect(**config)
-    
-        if conn.is_connected():
-            print("✅ Conexión exitosa a MariaDB")
-
-            # Crear un cursor
-            cursor = conn.cursor()
-
-            # Ejecutar una consulta
-            cursor.execute("SHOW TABLES;")
-            tables = cursor.fetchall()
-        
-            # Mostrar las tablas disponibles
-            for table in tables:
-                print(table)
-
-            # Cerrar la conexión
-            cursor.close()
-            conn.close()
-            print("✅ Conexión cerrada correctamente")
-
-    except mysql.connector.Error as e:
-        print(f"❌ Error al conectar a MariaDB: {e}")
-
 app = Flask(__name__)
 
 @app.get("/")
 def hello():
-    return "Hola mundo, desde docker-compose!"
+    return '{""Message": "Proyecto de ipmd de yeray2"}'
 
 @app.get("/data")
 def get_database():
-    # # connection for MariaDB
-    # conn = mariadb.connect(**config)
-    # # create a connection cursor
-    # cur = conn.cursor()
-    # # execute a SQL statement
-    # cur.execute("SELECT * FROM messages")
-    #
-    # # serialize results into JSON
-    # row_headers=[x[0] for x in cur.description]
-    # rv = cur.fetchall()
-    # json_data = []
-    # for result in rv:
-    #     json_data.append(dict(zip(row_headers,result)))
-    #
-    # # return the results!
-    # return json.dumps(json_data)
-    return "hola"
+    """
+    El servidor devuelve el contenido completo de la BD, en formato JSON
+    """
+    # Connection for MariaDB
+    conn = mysql.connector.connect(**config)
+    # Create a connection cursor
+    cur = conn.cursor()
+    # Execute a SQL statement and fetch de data
+    cur.execute("SELECT * FROM messages")
+    messages = cur.fetchall()
+    # Close the connection
+    cur.close()
+    conn.close()
+    # return the results!
+    return str(json.dump(messages))
 
 @app.get("/data/<int:id>")
 def get_id(id):
-    return f'<p>Getting {id} post...</p>'
+    """
+    El servidor devuelve el registro de la BD identificado por int, en formato JSON
+    """
+    # Connection for MariaDB
+    conn = mysql.connector.connect(**config)
+    # Create a connection cursor
+    cur = conn.cursor()
+    # Execute a SQL statement and fetch de data
+    cur.execute(f"SELECT * FROM messages WHERE clid={id}")
+    message = cur.fetchall()
+    # Close the connection
+    cur.close()
+    conn.close()
+    # return the results!
+    return str(json.dump(messages))
 
 @app.post("/data/<int:id>")
 def post_message(id):
+    """
+    El servidor inserta un registro en la BD. La petición debe incluir datos en JSON con el contenido del registro, enriquecido con el nombre del servidor. 
+    El campo "clid" es clave y debe ser único. El servidor devolverá un mensaje de éxito/error
+    """
     return f'<p>Posting {id} post...</p>'
 
 @app.put("/data/<int:id>")
 def update_message(id):
+    """
+    El servidor modifica el registro con "clid" = int en la BD. La petición debe incluir datos en JSON con el nuevo contenido del campo "mess".
+    El servidor devolverá un mensaje de éxito/error.
+    """
     return f'<p>Updating {id} post...</p>'
 
 @app.delete("/data/<int:id>")
 def delete_message(id):
+    """
+    El servidor elimina el registro con "clid" = int en la BD. El servidor devolverá un mensaje de éxito/error.
+    """
     return f'<p>Deleting {id} post...</p>'
 
 if __name__ == "__main__":
