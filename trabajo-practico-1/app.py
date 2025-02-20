@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, request
 import mysql.connector
 import json
 
@@ -11,6 +11,13 @@ config = {
     'password': 'wolfxyz',
     'database': 'ipmd',
 }
+
+# Leemos el id del contenedor. Esta en el archivo /etc/hostname
+try:
+    with open('/etc/hostname', 'r') as f:
+        container_id = f.read().strip()
+except Exception as e:
+    container_id = ""
 
 app = Flask(__name__)
 
@@ -34,7 +41,7 @@ def get_database():
     cur.close()
     conn.close()
     # return the results!
-    return str(json.dump(messages))
+    return messages
 
 @app.get("/data/<int:id>")
 def get_id(id):
@@ -51,16 +58,50 @@ def get_id(id):
     # Close the connection
     cur.close()
     conn.close()
-    # return the results!
-    return str(json.dump(messages))
 
-@app.post("/data/<int:id>")
-def post_message(id):
+    return message
+
+@app.post("/data")
+def post_message():
     """
     El servidor inserta un registro en la BD. La petición debe incluir datos en JSON con el contenido del registro, enriquecido con el nombre del servidor. 
     El campo "clid" es clave y debe ser único. El servidor devolverá un mensaje de éxito/error
     """
-    return f'<p>Posting {id} post...</p>'
+    # Capturamos la variable que recibimos por POST
+    message = request.get_json()
+    clid = message['clid']
+    mess = message['mess']
+    
+    # Comprobamos que el mensaje tenga las keys que nos interesa
+    must_have_keys = {"clid", "mess"}
+    recived_keys = set(message.keys())
+    if not recived_keys.issubset(must_have_keys):
+        return {"message": "Message has an invalid format. Must have only clid and mess"}
+
+    # Comprobamos que el id sea un numero
+    try:
+        int(message['clid'])
+    except Exception as e:
+        return {"message": "clid is not a valid id. Only integer numbers"}
+
+    # Hacemos la conexion con la base de datos
+    conn = mysql.connector.connect(**config)
+    cur = conn.cursor()
+
+    # Ejecutamos la consulta SQL
+    try:
+        cur.execute(f"INSERT INTO messages VALUES ({clid}, \"{mess}\", \"{container_id}\")")
+    except mysql.connector.IntegrityError as e:
+        return {"error": "Integrity error, duplicated id"}
+
+    # Realizamos los cambios
+    conn.commit()
+
+    # Cerramos la conexion
+    cur.close()
+    conn.close()
+
+    return {"message": "Data added succesfully"}
 
 @app.put("/data/<int:id>")
 def update_message(id):
