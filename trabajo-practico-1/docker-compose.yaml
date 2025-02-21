@@ -1,19 +1,19 @@
 services:
   web:
-    container_name: "flask"
     build: .
-    ports:
+    expose:
       - "5000:5000"
     depends_on:
       - mariadb
     networks:
       - trabajo1
+    deploy:
+      replicas: 4
 
   mariadb:
-    container_name: "mariadb"
     image: mariadb
     restart: always
-    ports:
+    expose:
       - "3306:3306"
     volumes:
       - ./db:/docker-entrypoint-initdb.d/:ro
@@ -26,10 +26,9 @@ services:
       - trabajo1
 
   adminer:
-    container_name: "adminer"
     image: adminer
     restart: always
-    ports:
+    expose:
       - "8080:8080"
     environment:
       ADMINER_DEFAULT_SERVER: mariadb
@@ -57,6 +56,16 @@ services:
       - trabajo1
     volumes:
       - grafana-storage:/var/lib/grafana
+      
+  nginx:
+    image: nginx:latest
+    container_name: "nginx"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    expose:
+      - "80:80"
+    depends_on:
+      - web
 
 networks:
   trabajo1:
@@ -65,4 +74,3 @@ networks:
 
 volumes:
   grafana-storage:
-
