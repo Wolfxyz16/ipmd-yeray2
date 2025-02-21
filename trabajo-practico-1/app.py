@@ -3,8 +3,7 @@ import mysql.connector
 
 # mariadb config
 config = {
-    # 'host': 'mariadb',
-    'host': '172.18.0.3',
+    'host': 'mariadb',
     'port': 3306,
     'user': 'wolfxyz',
     'password': 'wolfxyz',
@@ -22,7 +21,7 @@ app = Flask(__name__)
 
 @app.get("/")
 def hello():
-    return '{"Message": "Hello from {container_id}. Proyecto de ipmd de yeray2"}'
+    return f'{{"Message": "Hello from {container_id}. Proyecto de ipmd de yeray2"}}'
 
 @app.get("/data")
 def get_database():
