@@ -1,5 +1,6 @@
 from flask import Flask, request
 import mysql.connector
+from prometheus_flask_exporter import PrometheusMetrics
 
 # mariadb config
 config = {
@@ -18,6 +19,7 @@ except Exception as e:
     container_id = ""
 
 app = Flask(__name__)
+metrics = PrometheusMetrics(app)
 
 @app.get("/")
 def hello():
@@ -173,6 +175,10 @@ def delete_message(id):
     conn.close()
 
     return {"message": "Data deleted successfully"}
+
+@app.route('/metrics')
+def metrics_endpoint():
+    return metrics
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
