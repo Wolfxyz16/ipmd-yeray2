@@ -11,6 +11,16 @@ scrape_configs:
       - targets: ['web:5000']
 
   - job_name: 'mariadb'
+    params:
+      auth_module: [client.server]
     static_configs:
       - targets: ['mariadb:3306']
+    relabel_configs:
+        - source_labels: [__address__]
+          target_label: __param_target
+        - source_labels: [__param_target]
+          target_label: instance
+        - target_label: __address__
+          # The mysqld_exporter host:port
+          replacement: localhost:9104
 

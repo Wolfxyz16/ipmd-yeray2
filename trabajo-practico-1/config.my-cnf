@@ -1,0 +1,6 @@
+    [client]
+    user = wolfxyz
+    password = wolfxyz
+    [client.servers]
+    user = wolfxyz
+    password = wolfxyz
