@@ -1,6 +1,7 @@
 from flask import Flask, request
 import mysql.connector
 import json
+from prometheus_flask_exporter import PrometheusMetrics
 
 # mariadb config
 config = {
@@ -20,6 +21,7 @@ except Exception as e:
     container_id = ""
 
 app = Flask(__name__)
+metrics = PrometheusMetrics(app)
 
 @app.get("/")
 def hello():
@@ -117,6 +119,10 @@ def delete_message(id):
     El servidor elimina el registro con "clid" = int en la BD. El servidor devolverá un mensaje de éxito/error.
     """
     return f'<p>Deleting {id} post...</p>'
+
+@app.route('/metrics')
+def metrics_endpoint():
+    return metrics
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
