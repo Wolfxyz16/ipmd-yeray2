@@ -10,12 +10,6 @@ scrape_configs:
     static_configs:
       - targets: ['web:5000']
 
-  - job_name: 'mariadb'
-    static_configs:
-      - targets: ['localhost:3306']
-    
-
   - job_name: 'mysqld-exporter'
     static_configs:
-      - targets: ['localhost:9104']
-
+      - targets: ['mysqld-exporter:9104']

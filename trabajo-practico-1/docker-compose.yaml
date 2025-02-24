@@ -68,8 +68,11 @@ services:
         - "9104:9104"
       command:
         - "--config.my-cnf=/etc/.my.cnf"
+        - "--mysqld.address=mariadb:3306"
       volumes:
         - ./config.my-cnf:/etc/.my.cnf
+      extra_hosts:
+        - "mysqld-exporter:127.0.0.1"
       networks:
         - trabajo1
 
