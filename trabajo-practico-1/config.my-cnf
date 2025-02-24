@@ -1,6 +1,4 @@
-    [client]
-    user = wolfxyz
-    password = wolfxyz
-    [client.servers]
-    user = wolfxyz
-    password = wolfxyz
+[client]
+user = wolfxyz
+password = wolfxyz
+host = mariadb

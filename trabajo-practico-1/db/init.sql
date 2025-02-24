@@ -1,9 +1,12 @@
-CREATE USER IF NOT EXISTS 'wolfxyz'@'localhost' IDENTIFIED BY 'wolfxyz';
-CREATE USER IF NOT EXISTS 'prometheus'@'localhost' IDENTIFIED WITH unix_socket;
+CREATE USER IF NOT EXISTS 'wolfxyz'@'%' IDENTIFIED BY 'wolfxyz';
+CREATE USER IF NOT EXISTS 'prometheus'@'%' IDENTIFIED WITH unix_socket;
+CREATE USER IF NOT EXISTS 'exporter'@'%' IDENTIFIED BY 'exporter';
 CREATE DATABASE IF NOT EXISTS ipmd;
 
-GRANT PROCESS, REPLICATION CLIENT, SELECT ON *.* TO 'prometheus'@'localhost';
-GRANT ALL PRIVILEGES ON ipmd TO 'wolfxyz'@'localhost';
+GRANT PROCESS, REPLICATION CLIENT, SELECT ON *.* TO 'prometheus'@'%';
+GRANT ALL PRIVILEGES ON ipmd TO 'wolfxyz'@'%';
+GRANT PROCESS, REPLICATION CLIENT ON *.* TO 'wolfxyz'@'%';
+GRANT PROCESS, REPLICATION CLIENT, SELECT ON *.* TO 'exporter'@'%';
 
 FLUSH PRIVILEGES;
 

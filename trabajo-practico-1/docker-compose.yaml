@@ -2,13 +2,12 @@ services:
   web:
     build: .
     expose:
-      - "5000:5000"
+      - "5000"
     depends_on:
       - mariadb
-    deploy:
-      mode: replicated
-      replicas: 4
-      endpoint_mode: vip
+    #deploy:
+    #  mode: replicated
+    #  replicas: 4
     networks:
         - trabajo1
 
@@ -62,21 +61,18 @@ services:
       - grafana-storage:/var/lib/grafana
 
   mysqld-exporter:
-    image: prom/mysqld-exporter
-    container_name: "mysqld_exporter"
-    restart: always
-    ports:
-      - "9104:9104"
-    environment:
-      DATA_SOURCE_NAME: "wolfxyz:wolfxyz@tcp(mariadb:3306)/"
-    volumes:
-      - ./config.my-cnf:/etc/.my.cnf
-    depends_on:
-      - mariadb
-    networks:
-     - trabajo1
+      image: quay.io/prometheus/mysqld-exporter
+      container_name: "mysqld-exporter"
+      restart: always
+      ports:
+        - "9104:9104"
+      command:
+        - "--config.my-cnf=/etc/.my.cnf"
+      volumes:
+        - ./config.my-cnf:/etc/.my.cnf
+      networks:
+        - trabajo1
 
-      
   nginx:
     image: nginx:latest
     container_name: "nginx"
