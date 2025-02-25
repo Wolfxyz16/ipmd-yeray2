@@ -5,9 +5,9 @@ services:
       - "5000"
     depends_on:
       - mariadb
-    #deploy:
-    #  mode: replicated
-    #  replicas: 4
+    deploy:
+      mode: replicated
+      replicas: 4
     networks:
         - trabajo1
 
