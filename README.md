@@ -13,16 +13,16 @@
 El objetivo de este trabajo es desplegar una solución que:
 
 1. Ofrezca una API REST para crear/modificar/eliminar registros en una base de datos.
-    1. El servidor del API estará implementado con Flask
-    2. Almacenará los datos en una BD MySQL
-    3. Incorporará un servicio con webUI Adminer para administrar la BD
+    * El servidor del API estará implementado con Flask
+    * Almacenará los datos en una BD MySQL
+    * Incorporará un servicio con webUI Adminer para administrar la BD
 
 2. Permita la monitorización completa del sistema usando Prometheus + Grafana
-    1. El servidor de API y el de BD ofrecerán métricas, que Prometheus leerá y almacenará
-        1. Las aplicaciones Flask pueden exportar métricas directamente
-        2. MySQL necesita un servicio "exporter" de traducción se sus métricas propias a un sistema
+    * El servidor de API y el de BD ofrecerán métricas, que Prometheus leerá y almacenará
+        * Las aplicaciones Flask pueden exportar métricas directamente
+        * MySQL necesita un servicio "exporter" de traducción se sus métricas propias a un sistema
             compatible con Prometheus
-    2. Grafana accederá a las métricas almacenadas en Prometheus para visualizarlas
+    * Grafana accederá a las métricas almacenadas en Prometheus para visualizarlas
 
 ## Implementación 
 La solución para este trabajo tendra los siguientes contenedores:
@@ -38,7 +38,9 @@ La solución para este trabajo tendra los siguientes contenedores:
 Al haber implementado servicios escalables, las metricas se exponen a traves de nginx 
 
 Nginx expone métricas en http://localhost:80/metrics.
+
 MySQL Exporter expone métricas en http://localhost:9104/metrics.
+
 Grafana utiliza Prometheus como fuente de datos para visualizar las métricas.
 
 ## Modo de uso
