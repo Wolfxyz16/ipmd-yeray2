@@ -72,5 +72,12 @@ Grafana utiliza Prometheus como fuente de datos para visualizar las métricas.
 
     Grafana: http://localhost:3000
     ```
+5. Paneles de grafana
+     ```bash
+    Panel para MySQL Exporter: código 14057 de la biblioteca de paneles de Grafana
+    Panel para aplicaciones Flask: se facilita en formato JSON
+    Panel extra para mariadb utiles : código 13106 de la biblioteca de paneles de Grafana
+    ```
+
 ## Autores
 * $Yeray^2$
