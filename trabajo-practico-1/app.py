@@ -20,6 +20,7 @@ except Exception as e:
 
 app = Flask(__name__)
 metrics = PrometheusMetrics(app)
+metrics.info('app_info', 'Application info', version='1.0.3')
 
 @app.get("/")
 def hello():
@@ -181,4 +182,4 @@ def metrics_endpoint():
     return metrics
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=5000)
