@@ -62,5 +62,15 @@ Grafana utiliza Prometheus como fuente de datos para visualizar las métricas.
     ```bash
     docker compose up -d
     ```
+4. Acceder a los servicios:
+    ```bash
+    API Flask + nginx: http://localhost:80
+
+    Adminer: http://localhost:8080
+
+    Prometheus: http://localhost:9090
+
+    Grafana: http://localhost:3000
+    ```
 ## Autores
 * $Yeray^2$
