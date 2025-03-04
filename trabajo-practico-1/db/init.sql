@@ -1,20 +1,22 @@
+-- Creamos los usuarios
 CREATE USER IF NOT EXISTS 'wolfxyz'@'%' IDENTIFIED BY 'wolfxyz';
 CREATE USER IF NOT EXISTS 'prometheus'@'%' IDENTIFIED BY 'prometheus';
-CREATE USER IF NOT EXISTS 'exporter'@'%' IDENTIFIED BY 'exporter';
+
+-- Creamos la base de datos
 CREATE DATABASE IF NOT EXISTS ipmd;
 
+-- Damos privilegios a los usuarios
+-- prometheus necesita todos los permisos para monitorizar
 GRANT PROCESS, REPLICATION CLIENT, SELECT ON *.* TO 'prometheus'@'%';
 GRANT ALL PRIVILEGES ON ipmd TO 'wolfxyz'@'%';
 GRANT PROCESS, REPLICATION CLIENT, SELECT ON *.* TO 'wolfxyz'@'%';
-GRANT PROCESS, REPLICATION CLIENT, SELECT ON *.* TO 'exporter'@'%';
-GRANT SLAVE MONITOR ON *.* TO 'exporter'@'%';
 GRANT SLAVE MONITOR ON *.* TO 'wolfxyz'@'%';
-GRANT REPLICATION CLIENT ON *.* TO 'exporter'@'%';
 GRANT REPLICATION CLIENT ON *.* TO 'wolfxyz'@'%';
 
-
+-- Aplicamos los privilegios
 FLUSH PRIVILEGES;
 
+-- Dentro de la base de datos de ipmd, creamos la tabla messages y añadimos dumb data
 USE ipmd;
 
 CREATE TABLE IF NOT EXISTS messages (
