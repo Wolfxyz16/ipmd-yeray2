@@ -34,6 +34,11 @@ La solución para este trabajo tendra los siguientes contenedores:
 * Grafana: Visualización de métricas mediante dashboards.
 * Ngix: Balandeador de carga para replicación de contenedores
 
+## Mejoras implementadas
+* [Opcional] Escalabilidad del servicio Flask.
+* [Opcional] Manejo de errores en la base de datos.
+
+
 ## Monitoreo con Prometheus y Grafana
 Al haber implementado servicios escalables, las metricas se exponen a traves de nginx 
 
@@ -42,6 +47,7 @@ Nginx expone métricas en http://localhost:80/metrics.
 MySQL Exporter expone métricas en http://localhost:9104/metrics.
 
 Grafana utiliza Prometheus como fuente de datos para visualizar las métricas.
+
 
 ## Modo de uso
 1. Clona el repositorio:
@@ -56,3 +62,5 @@ Grafana utiliza Prometheus como fuente de datos para visualizar las métricas.
     ```bash
     docker compose up -d
     ```
+## Autores
+* $Yeray^2$
