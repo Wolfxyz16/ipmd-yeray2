@@ -48,21 +48,98 @@ Dentro especificamos una imagen con el sistema operativo alpine y la versión 3.
 
 ### [`nginx.conf`](https://github.com/Wolfxyz16/ipmd-yeray2/blob/main/trabajo-practico-1/nginx.conf)
 
-TODO
+```
+events {}
+
+http {
+    upstream flask_backend {
+        server web:5000;
+    }
+
+    server {
+        listen 80;
+
+        location / {
+            proxy_pass http://flask_backend;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        }
+    }
+}
+```
+
+Este archivo de configuración es para **NGINX** y actúa como un **proxy inverso** para una aplicación Flask que se ejecuta en un contenedor llamado `web` en el puerto `5000`. 
+
+- Define un grupo de servidores `upstream` llamado `flask_backend`, que apunta a `web:5000`, el nombre del servicio que hemos definido.  
+- En el bloque `server`, NGINX escucha en el puerto `80` y redirige todas las solicitudes (`/`) a `flask_backend` mediante `proxy_pass`.  
 
 ### [`prometheus.yml`](https://github.com/Wolfxyz16/ipmd-yeray2/blob/main/trabajo-practico-1/prometheus.yml)
+
+```yaml
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'flask'
+    static_configs:
+      - targets: ['web:5000']
+
+  - job_name: 'mysqld-exporter'
+    static_configs:
+      - targets: ['mysqld-exporter:9104']
+```
 
 TODO
 
 ### [`./db/init.sql`](https://github.com/Wolfxyz16/ipmd-yeray2/blob/main/trabajo-practico-1/db/init.sql)
 
-TODO
+```sql
+-- Creamos los usuarios
+CREATE USER IF NOT EXISTS 'wolfxyz'@'%' IDENTIFIED BY 'wolfxyz';
+CREATE USER IF NOT EXISTS 'prometheus'@'%' IDENTIFIED BY 'prometheus';
+
+-- Creamos la base de datos
+CREATE DATABASE IF NOT EXISTS ipmd;
+
+-- Damos privilegios a los usuarios
+-- prometheus necesita todos los permisos para monitorizar
+GRANT PROCESS, REPLICATION CLIENT, SELECT ON *.* TO 'prometheus'@'%';
+GRANT ALL PRIVILEGES ON ipmd TO 'wolfxyz'@'%';
+GRANT PROCESS, REPLICATION CLIENT, SELECT ON *.* TO 'wolfxyz'@'%';
+GRANT SLAVE MONITOR ON *.* TO 'wolfxyz'@'%';
+GRANT REPLICATION CLIENT ON *.* TO 'wolfxyz'@'%';
+
+-- Aplicamos los privilegios
+FLUSH PRIVILEGES;
+
+-- Dentro de la base de datos de ipmd, creamos la tabla messages y añadimos dumb data
+USE ipmd;
+
+CREATE TABLE IF NOT EXISTS messages (
+  clid INT NOT NULL,
+  mess TEXT NOT NULL,
+  sid TEXT NOT NULL,
+  PRIMARY KEY(clid)
+);
+
+INSERT INTO messages (clid, mess, sid) VALUES
+(1, 'Hello world from messages table!', 'abc'),
+(2, 'Test', 'def'),
+(3, 'Yeray2 is the best team from ipmd', 'abc');
+```
+
+Este archivo SQL crea dos usuarios (`wolfxyz` y `prometheus`) con acceso remoto, define la base de datos `ipmd` si no existe y asigna permisos específicos a cada usuario. `prometheus` recibe privilegios de monitoreo, mientras que `wolfxyz` obtiene acceso total a la base de datos `ipmd` y permisos adicionales relacionados con la replicación. Luego, se crean los privilegios con `FLUSH PRIVILEGES`. Finalmente, dentro de `ipmd`, se define una tabla llamada `messages` con tres columnas (`clid`, `mess`, `sid`) y se insertan tres registros de prueba.  
 
 ### [`app.py`](https://github.com/Wolfxyz16/ipmd-yeray2/blob/main/trabajo-practico-1/app.py)
 
 Los métodos de `app.py` están explicados dentro del archivo en formato python docs.
 
-### [`app.py`](https://github.com/Wolfxyz16/ipmd-yeray2/blob/main/trabajo-practico-1/config.my-cnf)
+### [`config.my-cnf`](https://github.com/Wolfxyz16/ipmd-yeray2/blob/main/trabajo-practico-1/config.my-cnf)
 
 Guarda las métricas para que se puedan exportar al mariadb.
 
@@ -78,7 +155,7 @@ Dentro de este archivo definimos los servicios que levantaremos luego con el com
 ### Web (flask)
 En el servicio de web tenemos una simple API REST hecha con flask, un framework escrito en python. Esta es una API REST sencilla donde se implementa una base de datos con mensajes escritos, su id, y el contenedor donde se han creado.
 
-```
+```yaml
   web:
     build: .
     expose:
@@ -97,7 +174,7 @@ En el servicio web tenemos que expone el puerto 5000, depende del servicio maria
 ### Mariadb
 En el servicio de Mariadb hay alojada un servidor mariadb que se encarga de almacenar toda la información. Cuando una instancia web recibe una petición REST, esta se comunica con el servidor para llevar a cabo la tarea. A la hora de crear el contenedor, montamos un volumen en el directorio `/docker-entrypoint-initdb.d/`. Dentro del volumen le pasamos un pequeño script sql para que el servidor ejecutará al iniciarse. Dentro del script creamos la base de datos, definimos las tablas, creamos los usuarios y definimos los permisos para que solo puedan acceder a la base de datos de la aplicación.
 
-```
+```yaml
   mariadb:
     image: mariadb
     container_name: "mariadb"
@@ -122,7 +199,7 @@ En la línea de `environment` le indicamos al contenedor las variables de entorn
 ### Adminer
 El servicio de Adminer consiste en una interfaz web donde podemos acceder a la base de datos de mariadb. Sinceramente solo lo hemos usado para comprobar que la base de datos ha ejecutado el archivo de inicialización.
 
-```
+```yaml
 adminer:
     image: adminer
     container_name: "adminer"
