@@ -76,7 +76,7 @@ Este archivo de configuración es para **NGINX** y actúa como un **proxy invers
 
 ### [`prometheus.yml`](https://github.com/Wolfxyz16/ipmd-yeray2/blob/main/trabajo-practico-1/prometheus.yml)
 
-```yaml
+```yml
 global:
   scrape_interval: 15s
 
@@ -94,7 +94,10 @@ scrape_configs:
       - targets: ['mysqld-exporter:9104']
 ```
 
-TODO
+Este archivo es la configuración que usara Prometheus, en este definimos qué servicios se van a monitorear y con qué frecuencia.
+- Mediante `global` se sefine el intervalo de scrapeo, cada 15 segundos.
+- Con la función `scrape_configs` definimos las configuraciones para obtener métricas de distintos endpoint.
+- Mediante `job_name` nombramos que servicio queremos monitorear y con la opción `targets` indicamos en que puerto se estan exportando las metricas.
 
 ### [`./db/init.sql`](https://github.com/Wolfxyz16/ipmd-yeray2/blob/main/trabajo-practico-1/db/init.sql)
 
@@ -212,21 +215,77 @@ adminer:
       - trabajo1
 ```
 
-Este servicio contiene un servidor adminer que nos permite administrar
-
 ### mysqld-exporter
 El servicio de mysqld-exporter actúa como un adaptador que extrae métricas internas de MariaDB y las convierte en un formato compatible con Prometheus. Este servicio se encarga de recopilar información clave sobre el rendimiento de la base de datos, como el uso de conexiones, el tiempo de respuesta de las consultas, el consumo de recursos y el estado de los índices. Luego, expone estas métricas a través de un endpoint HTTP accesible por Prometheus, permitiendo su almacenamiento y análisis en tiempo real.
+
+```yaml
+mysqld-exporter:
+      image: quay.io/prometheus/mysqld-exporter
+      container_name: "mysqld-exporter"
+      restart: always
+      ports:
+        - "9104:9104"
+      command:
+        - "--config.my-cnf=/etc/.my.cnf"
+        - "--mysqld.address=mariadb:3306"
+      volumes:
+        - ./config.my-cnf:/etc/.my.cnf
+      extra_hosts:
+        - "mysqld-exporter:127.0.0.1"
+      networks:
+        - trabajo1
+```
 
 ### Prometheus
 El servicio de Prometheus es una herramienta open-source para la gestión de
 datos de monitorización de aplicaciones y servicios. Mediante este servicio extraerán las métricas almacenadas en el servicio de mysqld-exporter. Aunque este, sí que nos permite visualizar métricas de manera intuitiva, prometheus actuará como datasource Grafana.
 
+```yaml
+prometheus:
+    image: prom/prometheus
+    container_name: "prometheus"
+    restart: always
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - trabajo1
+```
+
 ### Grafana
 Grafana es una herramienta open-source para visualizar series temporales en una interfaz WebUI. Mediante Grafana se nos permite crear dashboards interactivos y personalizables para monitorear el estado y rendimiento de aplicaciones, bases de datos y servidores en tiempo real. 
 Para obtener los datos Grafana necesita de un datasource el cual almacenará y proporcionará los datos en tiempo (Prometheus).
 
+```yaml
+grafana:
+    image: grafana/grafana
+    container_name: "grafana"
+    restart: always
+    ports:
+      - "3000:3000"
+    networks:
+       - trabajo1
+    volumes:
+      - grafana-storage:/var/lib/grafana
+```
+
 ### Nginx
 El servicio de nginx contiene un servidor web nginx. En nuestro caso usamos este contenedor como balanceador de carga ya que tenemos el servicio web con replicación. Este es otro servicio que ha sido relativamente fácil de implementar ya que solo tenemos que indicar en el archivo de configuración el nombre del servicio y el puerto.
+
+```yaml
+nginx:
+    image: nginx:latest
+    container_name: "nginx"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "80:80"
+    depends_on:
+      - web
+    networks:
+      - trabajo1
+```
 
 ## Modo de uso
 1. Clona el repositorio:
