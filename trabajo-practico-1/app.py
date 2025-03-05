@@ -72,6 +72,8 @@ def get_id(id):
     
     cur.execute(f"SELECT * FROM messages WHERE clid={id}")
     message = cur.fetchall()
+    if not message:
+        return {"message": "ID not found"}
     
     cur.close()
     conn.close()
@@ -131,6 +133,9 @@ def update_message(id):
         cur = conn.cursor()
         cur.execute(f"UPDATE messages SET mess='{new_mess}' WHERE clid={id}")
         conn.commit()
+        if cur.rowcount == 0:
+            return {"error": "No rows deleted, ID not found"}
+        
     except mysql.connector.IntegrityError:
         return {"error": "Integrity error, ID not found"}
     finally:
@@ -155,6 +160,9 @@ def delete_message(id):
         cur = conn.cursor()
         cur.execute(f"DELETE FROM messages WHERE clid={id}")
         conn.commit()
+        if cur.rowcount == 0:
+            return {"error": "No rows deleted, ID not found"}
+        
     except mysql.connector.IntegrityError:
         return {"error": "Integrity error, ID not found"}
     finally:
