@@ -25,7 +25,7 @@
 * `prometheus.yml`: Configuración de Prometheus para recolectar métricas de los servicios en ejecución.
 * `requirements.txt`: Lista de dependencias de Python necesarias para la API (Flask, conectores MySQL, métricas, etc.).
 
-### `Dockerfile`
+### [`Dockerfile`](https://github.com/Wolfxyz16/ipmd-yeray2/blob/main/trabajo-practico-1/Dockerfile) 
 
 ```Dockerfile
 FROM python:3.10-alpine
