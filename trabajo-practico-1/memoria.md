@@ -312,6 +312,10 @@ nginx:
 
     ![Captura de pantalla del servicio web en funcionamiento](imagenes/replicacion.png)
 
+    * Comprobamos que el servicio web está conectado con la base de datos
+
+    ![Captura de pantalla donde vemos que la base de datos se actualiza](imagenes/insertar_borrar.png)
+
 4. Acceder a los servicios:
     ```bash
     API Flask + nginx: http://localhost:80
@@ -323,13 +327,13 @@ nginx:
     Grafana: http://localhost:3000
     ```
 
-* Podemos comprobar también que la aplicación tiene los errores controlados:
+    * Podemos comprobar también que la aplicación tiene los errores controlados:
 
-![Captura de pantalla de una interfaz de comandos](imagenes/controlError_get.png)
+    ![Captura de pantalla de una interfaz de comandos](imagenes/controlError_get.png)
 
-![Captura de pantalla de una interfaz de comandos](imagenes/controlError_post.png)
+    ![Captura de pantalla de una interfaz de comandos](imagenes/controlError_post.png)
 
-![Captura de pantalla de una interfaz de comandos](imagenes/controlError_delete.png)
+    ![Captura de pantalla de una interfaz de comandos](imagenes/controlError_delete.png)
 
 5. Prometheus
 
@@ -338,6 +342,7 @@ Si entramos en [http://localhost:9090](http://localhost:9090) podemos ver los se
 ![Captura de pantalla con los targets de prometheus](imagenes/Prometheus.png)
 
 6. Paneles de grafana
+
      ```bash
     Panel para MySQL Exporter: código 14057 de la biblioteca de paneles de Grafana
     Panel para aplicaciones Flask: se facilita en formato JSON
