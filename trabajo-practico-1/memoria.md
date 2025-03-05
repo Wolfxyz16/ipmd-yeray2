@@ -2,7 +2,7 @@
 
 ## Estructura del proyecto
 
-```
+```bash
 ├── app.py
 ├── config.my-cnf
 ├── db
@@ -24,6 +24,22 @@
 * `nginx.conf`: Configuración de Nginx como balanceador de carga para distribuir tráfico entre instancias de la API.
 * `prometheus.yml`: Configuración de Prometheus para recolectar métricas de los servicios en ejecución.
 * `requirements.txt`: Lista de dependencias de Python necesarias para la API (Flask, conectores MySQL, métricas, etc.).
+
+### `Dockerfile`
+
+```Dockerfile
+FROM python:3.10-alpine
+WORKDIR /app
+ENV FLASK_APP=app.py
+RUN apk add --no-cache gcc musl-dev linux-headers mysql-client
+COPY requirements.txt requirements.txt
+RUN pip3 install -r requirements.txt
+EXPOSE 5000
+COPY . .
+CMD ["flask", "run", "--host=0.0.0.0", "--port=5000"]
+```
+
+Dentro 
 
 ## Servicios
 
