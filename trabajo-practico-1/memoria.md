@@ -148,9 +148,6 @@ Guarda las métricas para que se puedan exportar al mariadb.
 
 ## Servicios
 
-> [!IMPORTANT]
-> Tenemos que explicar como entrar a grafana y a mariadb. Explicar todo un poco mas en general
-
 Vamos a ir explicando los servicios a la vez que el bloque de código que los define en el archivo [`docker-compose.yaml`](https://github.com/Wolfxyz16/ipmd-yeray2/blob/main/trabajo-practico-1/docker-compose.yaml).
 
 Dentro de este archivo definimos los servicios que levantaremos luego con el comando `docker-compose up --build`. En nuestro caso, cada servicio esta asociado a un contenedor, excepto el servicio web que lo tenemos replicado con 4 copias. Por último, todos los servicios que tenemos estan dentro de la red llamada `trabajo1`.
