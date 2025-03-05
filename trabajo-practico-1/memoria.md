@@ -300,6 +300,21 @@ nginx:
     ```bash
     docker compose up -d
     ```
+
+    * Comprobamos que los contenedores esten levantados
+    ```bash
+    docker ps
+    ```
+
+    ![Captura de pantalla donde vemos los contenedores que están en funcionamiento](imagenes/Docker_ps.png)
+
+    * Comprobamos que el servicio web+nginx esté en funcionamiento
+    ```bash
+    curl -X GET http://localhost:80/data
+    ```
+
+    ![Captura de pantalla del servicio web en funcionamiento](imagenes/replicacion.png)
+
 4. Acceder a los servicios:
     ```bash
     API Flask + nginx: http://localhost:80
@@ -310,9 +325,28 @@ nginx:
 
     Grafana: http://localhost:3000
     ```
-5. Paneles de grafana
+
+* Podemos comprobar también que la aplicación tiene los errores controlados:
+
+![Captura de pantalla de una interfaz de comandos](imagenes/controlError_get.png)
+
+![Captura de pantalla de una interfaz de comandos](imagenes/controlError_post.png)
+
+![Captura de pantalla de una interfaz de comandos](imagenes/controlError_delete.png)
+
+5. Prometheus
+
+Si entramos en [http://localhost:9090](http://localhost:9090) podemos ver los servicios que monitorea prometheus.
+
+![Captura de pantalla con los targets de prometheus](imagenes/Prometheus.png)
+
+6. Paneles de grafana
      ```bash
     Panel para MySQL Exporter: código 14057 de la biblioteca de paneles de Grafana
     Panel para aplicaciones Flask: se facilita en formato JSON
     Panel extra para mariadb utiles : código 13106 de la biblioteca de paneles de Grafana
     ```
+
+    ![Código json proporcionado en egela](imagenes/grafana_json.png)
+
+    ![Panel para mysql exporter](imagenes/grafana_sql.png)
