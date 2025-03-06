@@ -94,7 +94,7 @@ scrape_configs:
       - targets: ['mysqld-exporter:9104']
 ```
 
-Este archivo es la configuración que usara Prometheus, en este definimos qué servicios se van a monitorear y con qué frecuencia.
+Este archivo es la configuración que usara Prometheus, en este definimos qué servicios se van a monitorizar y con qué frecuencia.
 - Mediante `global` se sefine el intervalo de scrapeo, cada 15 segundos.
 - Con la función `scrape_configs` definimos las configuraciones para obtener métricas de distintos endpoint.
 - Mediante `job_name` nombramos que servicio queremos monitorear y con la opción `targets` indicamos en que puerto se estan exportando las metricas.
@@ -338,7 +338,7 @@ nginx:
 5. Prometheus
 
     Si entramos en [http://localhost:9090](http://localhost:9090) podemos ver los servicios que monitorea prometheus.
-    
+
     ![Captura de pantalla con los targets de prometheus](imagenes/Prometheus.png)
 
 6. Paneles de grafana
