@@ -337,9 +337,9 @@ nginx:
 
 5. Prometheus
 
-Si entramos en [http://localhost:9090](http://localhost:9090) podemos ver los servicios que monitorea prometheus.
-
-![Captura de pantalla con los targets de prometheus](imagenes/Prometheus.png)
+    Si entramos en [http://localhost:9090](http://localhost:9090) podemos ver los servicios que monitorea prometheus.
+    
+    ![Captura de pantalla con los targets de prometheus](imagenes/Prometheus.png)
 
 6. Paneles de grafana
 
