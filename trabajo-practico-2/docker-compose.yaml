@@ -6,8 +6,6 @@ services:
       - CLUSTER_NAME=test_cluster
     ports:
       - "9870:9870"
-    volumes:
-      - namenode_data:/hadoop/dfs/name
 
   datanode:
     image: bde2020/hadoop-datanode:latest
@@ -18,8 +16,6 @@ services:
       - namenode
     ports:
       - "9864:9864"
-    volumes:
-      - datanode_data:/hadoop/dfs/data
 
   hive-server:
     image: bde2020/hive:latest
@@ -49,9 +45,6 @@ services:
       MYSQL_USER: wolfxyz
       MYSQL_PASSWORD: wolfxyz
       MYSQL_DATABASE: ipmd
-    networks:
-      - trabajo2
-
   
   grafana:
     image: grafana/grafana
@@ -59,16 +52,4 @@ services:
     restart: always
     ports:
       - "3000:3000"
-    networks:
-       - trabajo2
-    volumes:
-      - grafana-storage:/var/lib/grafana
 
-
-networks:
-  trabajo2:
-    name: trabajo2
-    driver: bridge
-
-volumes:
-  grafana-storage:
