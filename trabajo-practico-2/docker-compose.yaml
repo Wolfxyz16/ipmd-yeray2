@@ -7,6 +7,10 @@ services:
     ports:
       - "9870:9870"
       - "8020:8020"
+    healthcheck:
+      test: ["CMD", "hdfs", "dfsadmin", "-report"]
+      interval: 10s
+      retries: 5
 
   datanode:
     image: bde2020/hadoop-datanode:latest
@@ -25,8 +29,10 @@ services:
       - HIVE_MODE=server
       - SERVICE_NAME=hiveserver2
     depends_on:
-      - namenode
-      - datanode
+      namenode:
+        condition: service_healthy
+      datanode:
+        condition: service_started
     ports:
       - "10000:10000"
       - "10002:10002"
@@ -54,3 +60,8 @@ services:
     ports:
       - "3000:3000"
 
+volumes:
+  namenode_data:
+  datanode_data:
+  mysql_data:
+  grafana-storage:

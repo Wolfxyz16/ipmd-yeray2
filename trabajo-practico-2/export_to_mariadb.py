@@ -23,6 +23,8 @@ except Exception as e:
     print(f"❌ Error conectando a MariaDB: {e}")
     exit(1)
 
+cursor_mariadb.execute("USE ipmd;")
+
 # Crear tabla en MariaDB si no existe
 cursor_mariadb.execute("""
     CREATE TABLE IF NOT EXISTS summary (
