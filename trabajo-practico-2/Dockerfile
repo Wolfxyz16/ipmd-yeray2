@@ -4,7 +4,7 @@ FROM python:3.9
 WORKDIR /app
 
 # Copiar e instalar dependencias de Python
-COPY requirements.txt .
+COPY requirements.txt requirements.txt
 RUN pip3 install -r requirements.txt
 
 # Copiar los scripts al contenedor

@@ -59,6 +59,5 @@ networks:
 
 volumes:
   namenode_data:
-  datanode_data:
-  mysql_data:
+  mariadb_data:
   grafana-storage:
