@@ -4,6 +4,7 @@ from pyhive import hive
 # Conectar a Hive
 try:
     hive_conn = hive.Connection(host="hive-server", port=10000, database="default")
+    print("✅ Conexión a Hive establecida correctamente.")
     cursor_hive = hive_conn.cursor()
     cursor_hive.execute("SELECT country, user_count FROM summary")
 except Exception as e:

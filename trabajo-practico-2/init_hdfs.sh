@@ -1,5 +1,8 @@
 #!/bin/bash
 
+hadoop fs -mkdir /user/hive
+hadoop fs -chown hive /user/hive
+
 # Crear directorio en HDFS
 hdfs dfs -mkdir -p /user/hive/warehouse/usuarios
 
