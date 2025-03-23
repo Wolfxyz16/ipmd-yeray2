@@ -1,7 +1,7 @@
 FROM python:3.9
 
-# Establecer el directorio de trabajo
-WORKDIR /app
+# Establecer el directorio de trabajo en la raíz del proyecto
+WORKDIR /trabajo-practico-2
 
 # Copiar e instalar dependencias de Python
 COPY requirements.txt requirements.txt

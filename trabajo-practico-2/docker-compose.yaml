@@ -9,7 +9,7 @@ services:
       - "50070:50070" 
       - "8088:8088"
     volumes:
-      - ./app:/app
+      - .:/trabajo-practico-2
     networks:
       - mynet
 
@@ -24,7 +24,7 @@ services:
       - "10000:10000"
       - "10002:10002"
     volumes:
-      - ./app:/app
+      - .:/trabajo-practico-2
     networks:
       - mynet
 

@@ -2,8 +2,8 @@
 CREATE EXTERNAL TABLE IF NOT EXISTS usuarios
 ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.avro.AvroSerDe'
 STORED AS AVRO
-LOCATION 'hdfs:///user/hive/userdata/'
-TBLPROPERTIES ('avro.schema.url'='hdfs:///user/hive/userdata/userdata.avsc');
+LOCATION 'hdfs://namenode:9000/user/hive/userdata/'
+TBLPROPERTIES ('avro.schema.url'='hdfs://namenode:9000/user/hive/userdata/userdata.avsc');
 
 -- Crear tabla resumen de usuarios por país
 CREATE TABLE IF NOT EXISTS summary AS
