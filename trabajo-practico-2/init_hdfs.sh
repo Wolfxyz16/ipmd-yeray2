@@ -8,6 +8,6 @@ hdfs dfs -chown hive /user/hive
 hdfs dfs -mkdir -p /user/hive/userdata/
 
 # Subir archivos AVRO a HDFS
-hdfs dfs -put ./userdata/* /user/hive/userdata/
+hdfs dfs -put /app/userdata/* /user/hive/userdata/
 
 echo "✅ Datos AVRO cargados en HDFS correctamente."

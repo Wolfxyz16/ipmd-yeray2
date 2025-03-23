@@ -2,12 +2,14 @@ services:
   namenode:
     image: jdvelasq/hadoop:2.10.1
     container_name: namenode
+    tty: true
+    stdin_open: true
     ports:
       - "8888:8888" 
       - "50070:50070" 
       - "8088:8088"
     volumes:
-      - ./workspace:/workspace
+      - ./app:/app
     networks:
       - mynet
 
@@ -22,7 +24,7 @@ services:
       - "10000:10000"
       - "10002:10002"
     volumes:
-      - ./workspace:/workspace
+      - ./app:/app
     networks:
       - mynet
 
