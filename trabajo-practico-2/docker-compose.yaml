@@ -5,11 +5,12 @@ services:
     tty: true
     stdin_open: true
     ports:
-      - "8888:8888" 
-      - "50070:50070" 
+      - "8888:8888"
+      - "50070:50070"
       - "8088:8088"
     volumes:
       - .:/trabajo-practico-2
+      - ./userdata:/userdata  
     networks:
       - mynet
 
@@ -30,11 +31,12 @@ services:
 
   mariadb:
     image: mariadb
-    container_name: "mariadb"
+    container_name: mariadb
     restart: always
     ports:
       - "3306:3306"
     volumes:
+      - mariadb_data:/var/lib/mysql  
       - ./db:/docker-entrypoint-initdb.d/:ro
     environment:
       MYSQL_ROOT_PASSWORD: root
@@ -46,10 +48,12 @@ services:
   
   grafana:
     image: grafana/grafana
-    container_name: "grafana"
+    container_name: grafana
     restart: always
     ports:
       - "3000:3000"
+    volumes:
+      - grafana-storage:/var/lib/grafana  
     networks:
       - mynet
 
@@ -58,8 +62,6 @@ networks:
     name: mynet
     driver: bridge
 
-
 volumes:
-  namenode_data:
-  mariadb_data:
-  grafana-storage:
+  mariadb_data:      
+  grafana-storage:  
