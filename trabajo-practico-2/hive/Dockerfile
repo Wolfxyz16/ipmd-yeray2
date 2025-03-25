@@ -1,4 +1,4 @@
-FROM python:3.9
+FROM apache/hive:3.1.3
 
 # Establecer el directorio de trabajo en la raíz del proyecto
 WORKDIR /trabajo-practico-2

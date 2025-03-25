@@ -1,6 +1,6 @@
 services:
   namenode:
-    image: jdvelasq/hadoop:2.10.1
+    build: ./namenode
     container_name: namenode
     tty: true
     stdin_open: true
@@ -14,13 +14,27 @@ services:
     networks:
       - mynet
 
-  hive-server:
-    image: apache/hive:3.1.3
+  datanode:
+    build: ./datanode
+    container_name: datanode
+    tty: true
+    stdin_open: true
+    ports:
+      - "8889:8889"
+    volumes:
+      - .:/trabajo-practico-2
+      - ./userdata:/userdata
+    networks:
+      - mynet
+
+  hive:
+    build: ./hive
     container_name: hive-server
     environment:
       - SERVICE_NAME=hiveserver2
     depends_on:
       - namenode
+      - datanode
     ports:
       - "10000:10000"
       - "10002:10002"
