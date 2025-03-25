@@ -15,4 +15,4 @@ COPY userdata /app/userdata
 
 
 # Ejecutar el script al iniciar el contenedor
-CMD ["bash", "-c", "datanode/init_hdfs.sh"]
+#CMD ["bash", "-c", "datanode/init_hdfs.sh"]
