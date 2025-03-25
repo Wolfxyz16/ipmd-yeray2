@@ -4,12 +4,12 @@ FROM apache/hive:3.1.3
 WORKDIR /trabajo-practico-2
 
 # Copiar e instalar dependencias de Python
-COPY requirements.txt requirements.txt
+COPY requirements.txt .
 RUN pip3 install -r requirements.txt
 
 # Copiar los scripts al contenedor
-COPY init_hive.sql .
-COPY export_to_mariadb.py .
+COPY hive/init_hive.sql .
+COPY hive/export_to_mariadb.py .
 COPY userdata /app/userdata 
 
 

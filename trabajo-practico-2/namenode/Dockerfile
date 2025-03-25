@@ -1,18 +1,18 @@
-FROM apache/hadoop.3
+FROM apache/hadoop:3.4.1
 
-# Establecer el directorio de trabajo en la raíz del proyecto
+# Establecer el directorio de trabajo
 WORKDIR /trabajo-practico-2
 
 # Copiar e instalar dependencias de Python
-COPY requirements.txt requirements.txt
-RUN pip3 install -r requirements.txt
+COPY requeriments.txt .
+RUN pip3 install -r requeriments.txt
 
-# Copiar los scripts al contenedor
-COPY init_hdfs.sh .
+# Copiar los scripts necesarios
+COPY namenode/init_hdfs.sh .
+COPY userdata /app/userdata
 
+# Dar permisos de ejecución al script
+RUN chmod +x init_hdfs.sh
 
-# Dar permisos de ejecución al script de HDFS
-RUN chmod +x /trabajo-practico-2/init_hdfs.sh
-
-CMD ["/bin/bash", "-c", "
-    /trabajo-practico-2/init_hdfs.sh "]
+# Ejecutar el script al iniciar el contenedor
+CMD ["bash", "-c", "./init_hdfs.sh"]

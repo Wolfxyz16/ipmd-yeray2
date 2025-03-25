@@ -1,6 +1,8 @@
 services:
   namenode:
-    build: ./namenode
+    build:
+      context: .
+      dockerfile: namenode/Dockerfile
     container_name: namenode
     tty: true
     stdin_open: true
@@ -15,7 +17,9 @@ services:
       - mynet
 
   datanode:
-    build: ./datanode
+    build:
+      context: .
+      dockerfile: datanode/Dockerfile
     container_name: datanode
     tty: true
     stdin_open: true
@@ -28,7 +32,9 @@ services:
       - mynet
 
   hive:
-    build: ./hive
+    build:
+      context: .
+      dockerfile: hive/Dockerfile
     container_name: hive-server
     environment:
       - SERVICE_NAME=hiveserver2
