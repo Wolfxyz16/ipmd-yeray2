@@ -1,87 +1,45 @@
 services:
   namenode:
+    # image: apache/hadoop:3
     build:
       context: .
       dockerfile: namenode/Dockerfile
+    hostname: namenode
     container_name: namenode
-    tty: true
-    stdin_open: true
     ports:
-      - "8888:8888"
-      - "50070:50070"
-      - "8088:8088"
+      - 9870:9870
+    command: ["hdfs", "namenode"]
+    env_file:
+      - ./config
     volumes:
-      - .:/trabajo-practico-2
-      - ./userdata:/userdata  
-    networks:
-      - mynet
-
-  datanode:
-    build:
-      context: .
-      dockerfile: datanode/Dockerfile
-    container_name: datanode
-    tty: true
-    stdin_open: true
-    ports:
-      - "8889:8889"
-    volumes:
-      - .:/trabajo-practico-2
       - ./userdata:/userdata
-    networks:
-      - mynet
-
-  hive:
-    build:
-      context: .
-      dockerfile: hive/Dockerfile
-    container_name: hive-server
     environment:
-      - SERVICE_NAME=hiveserver2
-    depends_on:
-      - namenode
-      - datanode
-    ports:
-      - "10000:10000"
-      - "10002:10002"
-    volumes:
-      - .:/trabajo-practico-2
-    networks:
-      - mynet
+      ENSURE_NAMENODE_DIR: "/tmp/hadoop-root/dfs/name"
+  datanode_1:
+    image: apache/hadoop:3
+    container_name: datanode-1
+    command: [ "hdfs", "datanode" ]
+    env_file:
+      - ./config
+  datanode_2:
+    image: apache/hadoop:3
+    container_name: datanode-2
+    command: [ "hdfs", "datanode" ]
+    env_file:
+      - ./config
 
-  mariadb:
-    image: mariadb
-    container_name: mariadb
-    restart: always
-    ports:
-      - "3306:3306"
-    volumes:
-      - mariadb_data:/var/lib/mysql  
-      - ./db:/docker-entrypoint-initdb.d/:ro
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_USER: wolfxyz
-      MYSQL_PASSWORD: wolfxyz
-      MYSQL_DATABASE: ipmd
-    networks:
-      - mynet
-  
-  grafana:
-    image: grafana/grafana
-    container_name: grafana
-    restart: always
-    ports:
-      - "3000:3000"
-    volumes:
-      - grafana-storage:/var/lib/grafana  
-    networks:
-      - mynet
-
-networks:
-  mynet:
-    name: mynet
-    driver: bridge
-
-volumes:
-  mariadb_data:      
-  grafana-storage:  
+  # resourcemanager:
+  #   image: apache/hadoop:3
+  #   hostname: resourcemanager
+  #   command: [ "yarn", "resourcemanager" ]
+  #   ports:
+  #     - 8088:8088
+  #   env_file:
+  #     - ./config
+  #   volumes:
+  #     - ./test.sh:/opt/test.sh
+  # nodemanager:
+  #   image: apache/hadoop:3
+  #   command: [ "yarn", "nodemanager" ]
+  #   env_file:
+  #     - ./config

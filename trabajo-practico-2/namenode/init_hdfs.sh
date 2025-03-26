@@ -1,4 +1,10 @@
 #!/bin/bash
+hdfs namenode
+
+sleep 10
+
+hadoop fs -put /userdata /userdata
+hadoop fs -ls /
 
 # Crear y asignar permisos en HDFS
 hdfs dfs -mkdir -p /user/hive
