@@ -4,10 +4,7 @@ FROM apache/hadoop:3
 WORKDIR /trabajo-practico-2
 
 # Copiar los scripts necesarios
-COPY init_hdfs.sh init_hdfs
-
-# Hacer ejecutable
-RUN chmod +x init_hdfs.sh
+COPY /namenode/init_hdfs.sh init_hdfs.sh
 
 # Ejecutar el script al iniciar el contenedor
-CMD ["./init_hdfs.sh"]
+CMD ["/bin/bash", "./init_hdfs.sh"]

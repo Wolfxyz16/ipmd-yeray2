@@ -1,24 +1,24 @@
 #!/bin/bash
 hdfs namenode
 
-sleep 10
+echo "hola toy aqui"
 
-hadoop fs -put /userdata /userdata
-hadoop fs -ls /
+hadoop fs -put /userdata hdfs://namenode/userdata
+hadoop fs -ls hdfs://namenode/
 
 # Crear y asignar permisos en HDFS
-hdfs dfs -mkdir -p /user/hive
-hdfs dfs -chown hive /user/hive
-hdfs dfs -mkdir -p /user/hive/warehouse
-hdfs dfs -chown hive /user/hive/warehouse
-hdfs dfs -mkdir -p /home/hive
-hdfs dfs -chown hive /home/hive
+hdfs dfs -mkdir -p hdfs://namenode/user/hive
+hdfs dfs -chown hive hdfs://namenode/user/hive
+hdfs dfs -mkdir -p hdfs://namenode/user/hive/warehouse
+hdfs dfs -chown hive hdfs://namenode/user/hive/warehouse
+hdfs dfs -mkdir -p hdfs://namenode/home/hive
+hdfs dfs -chown hive hdfs://namenode/home/hive
 
 # Crear directorio en HDFS
-hdfs dfs -mkdir -p /user/hive/userdata/
-hdfs dfs -chown hive /user/hive/userdata/
+hdfs dfs -mkdir -p hdfs://namenode/user/hive/userdata/
+hdfs dfs -chown hive hdfs://namenode/user/hive/userdata/
 
 # Subir archivos AVRO a HDFS
-hdfs dfs -put /trabajo-practico-2/userdata/* /user/hive/userdata/
+hdfs dfs -put /userdata/* hdfs://namenode/user/hive/userdata/
 
 echo "✅ Datos AVRO cargados en HDFS correctamente."

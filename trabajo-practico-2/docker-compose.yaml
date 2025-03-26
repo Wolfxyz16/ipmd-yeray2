@@ -15,19 +15,80 @@ services:
       - ./userdata:/userdata
     environment:
       ENSURE_NAMENODE_DIR: "/tmp/hadoop-root/dfs/name"
+    networks:
+      - mynet
+
   datanode_1:
     image: apache/hadoop:3
     container_name: datanode-1
     command: [ "hdfs", "datanode" ]
     env_file:
       - ./config
+    networks:
+      - mynet
+
   datanode_2:
     image: apache/hadoop:3
     container_name: datanode-2
     command: [ "hdfs", "datanode" ]
     env_file:
       - ./config
+    networks:
+      - mynet
 
+  hive:
+    build:
+      context: .
+      dockerfile: hive/Dockerfile
+    container_name: hive-server
+    environment:
+      - SERVICE_NAME=hiveserver2
+    depends_on:
+      - namenode
+    ports:
+      - "10000:10000"
+      - "10002:10002"
+    volumes:
+      - .:/trabajo-practico-2
+    networks:
+      - mynet
+
+  mariadb:
+    image: mariadb
+    container_name: mariadb
+    restart: always
+    ports:
+      - "3306:3306"
+    volumes:
+      - mariadb_data:/var/lib/mysql  
+      - ./db:/docker-entrypoint-initdb.d/:ro
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: wolfxyz
+      MYSQL_PASSWORD: wolfxyz
+      MYSQL_DATABASE: ipmd
+    networks:
+      - mynet
+  
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    restart: always
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-storage:/var/lib/grafana  
+    networks:
+      - mynet
+
+networks:
+  mynet:
+    name: mynet
+    driver: bridge
+
+volumes:
+  mariadb_data:      
+  grafana-storage:  
   # resourcemanager:
   #   image: apache/hadoop:3
   #   hostname: resourcemanager
