@@ -8,11 +8,14 @@ RUN apt-get update && apt-get install -y python3-pip
 # Copiar e instalar dependencias de Python
 COPY requeriments.txt .
 RUN pip install -r requeriments.txt
+RUN mkdir -p /home/hive/.beeline && chown hive:hive /home/hive/.beeline
+
 USER hive
 # Copiar los scripts y datos
 COPY hive/init_hive.sql init_hive.sql
 COPY hive/export_to_mariadb.py export_to_mariadb.py
 COPY userdata /app/userdata 
 
+
 # Ejecutar SQL en Hive y luego exportar a MariaDB
-#CMD[beeline -u jdbc:hive2://localhost:10000/ -f hdfs://namenode/hive/init_hive.sql && python export_to_mariadb.py]
+#CMD[beeline -u jdbc:hive2://localhost:10000/ -f hive/init_hive.sql && python export_to_mariadb.py]

@@ -13,6 +13,7 @@ services:
       - ./config
     volumes:
       - ./userdata:/userdata
+      - ./estructura:/estructura
     environment:
       ENSURE_NAMENODE_DIR: "/tmp/hadoop-root/dfs/name"
     networks:
