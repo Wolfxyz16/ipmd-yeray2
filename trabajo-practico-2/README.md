@@ -36,4 +36,11 @@ Una vez los datos estan añadidos correctamente nos metemos en el contendor de h
 
  describe formatted usuarios;
 
+ CREATE TABLE IF NOT EXISTS summary AS
+ SELECT country, COUNT(*) AS user_count
+ FROM usuarios
+ GROUP BY country
+ ORDER BY user_count DESC
+ LIMIT 10;
+
 '''
