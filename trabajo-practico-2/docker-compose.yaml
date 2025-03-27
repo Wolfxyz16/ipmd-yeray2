@@ -50,7 +50,7 @@ services:
       - "10000:10000"
       - "10002:10002"
     volumes:
-      - .:/trabajo-practico-2
+      - ./hive:/hive
     networks:
       - mynet
 
@@ -81,6 +81,17 @@ services:
       - grafana-storage:/var/lib/grafana  
     networks:
       - mynet
+  
+  ejecutor:
+    build:
+      context: .
+      dockerfile: ejecutor/Dockerfile
+    container_name: ejecutor
+    volumes:
+      - ./userdata:/userdata
+      - ./estructura:/estructura
+    networks:
+      - mynet
 
 networks:
   mynet:
@@ -90,18 +101,3 @@ networks:
 volumes:
   mariadb_data:      
   grafana-storage:  
-  # resourcemanager:
-  #   image: apache/hadoop:3
-  #   hostname: resourcemanager
-  #   command: [ "yarn", "resourcemanager" ]
-  #   ports:
-  #     - 8088:8088
-  #   env_file:
-  #     - ./config
-  #   volumes:
-  #     - ./test.sh:/opt/test.sh
-  # nodemanager:
-  #   image: apache/hadoop:3
-  #   command: [ "yarn", "nodemanager" ]
-  #   env_file:
-  #     - ./config

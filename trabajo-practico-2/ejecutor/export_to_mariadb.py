@@ -1,9 +1,9 @@
-import mariadb
+import mysql.connector
 from pyhive import hive
 
 # Conectar a Hive
 try:
-    hive_conn = hive.Connection(host="hive-server", port=10000, database="default")
+    hive_conn = hive.Connection(host="hive-server", port=10000, database="ipmd")
     print("✅ Conexión a Hive establecida correctamente.")
     cursor_hive = hive_conn.cursor()
     cursor_hive.execute("SELECT country, user_count FROM summary")
@@ -13,7 +13,7 @@ except Exception as e:
 
 # Conectar a MariaDB
 try:
-    mariadb_conn = mariadb.connect(
+    mariadb_conn = mysql.connector.connect(
         host="mariadb",
         user="wolfxyz",
         password="wolfxyz",
