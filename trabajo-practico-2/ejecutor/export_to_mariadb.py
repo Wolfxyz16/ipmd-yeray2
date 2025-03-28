@@ -4,6 +4,11 @@ from pyhive import hive
 hive_conn = None 
 mariadb_conn = None
 
+"""
+[TODO]: Lo que podemos hacer es meter dentro del while true comprobaciones de conexiones a los contenedores y una vez los
+        detecte, ejecutar las conexiones.
+"""
+
 while hive_conn == None and mariadb_conn == None:
     # Conectar a Hive
     try:
