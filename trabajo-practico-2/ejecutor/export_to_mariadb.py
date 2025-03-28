@@ -1,28 +1,22 @@
 import mysql.connector
 from pyhive import hive
 
-# Conectar a Hive
-try:
-    hive_conn = hive.Connection(host="hive-server", port=10000, database="ipmd")
-    print("✅ Conexión a Hive establecida correctamente.")
-    cursor_hive = hive_conn.cursor()
-    cursor_hive.execute("SELECT country, user_count FROM summary")
-except Exception as e:
-    print(f"❌ Error conectando a Hive: {e}")
-    exit(1)
+hive_conn = None 
+mariadb_conn = None
 
-# Conectar a MariaDB
-try:
-    mariadb_conn = mysql.connector.connect(
-        host="mariadb",
-        user="wolfxyz",
-        password="wolfxyz",
-        database="ipmd"
-    )
-    cursor_mariadb = mariadb_conn.cursor()
-except Exception as e:
-    print(f"❌ Error conectando a MariaDB: {e}")
-    exit(1)
+while hive_conn == None and mariadb_conn == None:
+    # Conectar a Hive
+    try:
+        hive_conn = hive.Connection(host="hive-server", port=10000, database="ipmd")
+        mariadb_conn = mysql.connector.connect(
+            host="mariadb",
+            user="wolfxyz",
+            password="wolfxyz",
+            database="ipmd"
+        )
+        cursor_hive = hive_conn.cursor()
+        cursor_mariadb = mariadb_conn.cursor()
+
 
 cursor_mariadb.execute("USE ipmd;")
 
@@ -51,3 +45,6 @@ cursor_hive.close()
 cursor_mariadb.close()
 hive_conn.close()
 mariadb_conn.close()
+
+# Salimos del script, success
+exit(0)
