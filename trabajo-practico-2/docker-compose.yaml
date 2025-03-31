@@ -17,7 +17,8 @@ services:
     environment:
       ENSURE_NAMENODE_DIR: "/tmp/hadoop-root/dfs/name"
     networks:
-      - mynet
+      mynet:
+        ipv4_address: 172.18.0.2
 
   datanode_1:
     image: apache/hadoop:3
