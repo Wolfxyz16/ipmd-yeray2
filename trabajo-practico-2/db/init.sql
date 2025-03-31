@@ -33,8 +33,7 @@ INSERT INTO messages (message) VALUES
 ('To be or not to be, that is the question.'),
 ('All that glitters is not gold.'),
 ('In the end, we will remember not the words of our enemies, but the silence of our friends.'),
-('The only thing we have to fear is fear itself.');
-INSERT INTO messages (message) VALUES
+('The only thing we have to fear is fear itself.'),
 ('The greatest glory in living lies not in never falling, but in rising every time we fall.'),
 ('Life is what happens when you’re busy making other plans.'),
 ('Get busy living or get busy dying.'),
