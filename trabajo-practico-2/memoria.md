@@ -13,14 +13,14 @@
 ├── ejecutor
 │   ├── Dockerfile
 │   └── export_to_mariadb.py
-├── estructura
-│   └── userdata.avsc
 ├── hive
 │   ├── Dockerfile
 │   └── init_hive.sql
 ├── namenode
 │   ├── Dockerfile
 │   └── init_hdfs.sh
+├── estructura
+│   └── userdata.avsc
 └── userdata
     ├── userdata1.avro
     ├── userdata2.avro
@@ -39,138 +39,181 @@
 * `ejecutor/Dockerfile`:  Define la imagen de Docker para un contenedor de python, instalando dependencias y configurando su ejecución.
 * `ejecutor/export_to_mariadb.py`:  Creamos conexiones con los contenedores de Hive y Mariadb para poder migrar los datos de Hive a una base de datos en Mariadb.
 
-* `estructura/`:  Carpeta que contiene la estructura de la base de datos que crearemos `userdata.avsc`.
-
 * `hive/Dockerfile`:  Define la imagen de Docker para un contenedor de Hive, instalando dependencias y configurando su ejecución.
 * `hive/init_hive.sql`:  Crearemos las tablas necesarias para el trabajo, obteniendo los datos que han sido subidos a HDFS.
 
 * `namenode/Dockerfile`:  Define la imagen de Docker para un contenedor de Hadoop, instalando dependencias y configurando su ejecución.
 * `namenode/init_hdfs.sh`:  Se inicia el NameNode de HDFS, se crean directorios, se asignan permisos y se suben archivos `.avro` a HDFS.
 
+* `estructura/`:  Carpeta que contiene la estructura de la base de datos que crearemos `userdata.avsc`.
+
 * `userdata/`:  Carpeta que alamacena los datos de la base de datos en formato `.avro`.
 
 
 
-### [`Dockerfile`](https://github.com/Wolfxyz16/ipmd-yeray2/blob/main/trabajo-practico-1/Dockerfile) 
+### [`ejecutor/Dockerfile`](https://github.com/Wolfxyz16/ipmd-yeray2/blob/main/trabajo-practico-2/ejecutor/Dockerfile) 
 
 ```Dockerfile
-FROM python:3.10-alpine
-WORKDIR /app
-ENV FLASK_APP=app.py
-RUN apk add --no-cache gcc musl-dev linux-headers mysql-client
-COPY requirements.txt requirements.txt
-RUN pip3 install -r requirements.txt
-EXPOSE 5000
-COPY . .
-CMD ["flask", "run", "--host=0.0.0.0", "--port=5000"]
-```
+FROM python:3
 
-Dentro especificamos una imagen con el sistema operativo alpine y la versión 3.10 de python.
+WORKDIR /trabajo-practico-2
 
-* En `WORKDIR` es el directorio donde flask va a buscar sus configuraciones
-* En `COPY` indicamos los modulos que queremos instalar en python
-* En `EXPOSE` indicamos que los contenedores creados con este dockerfile expongan el puerto 5000
-* Por último, en `CMD` indicamos el comando que ejecuta una vez se crea, en este caso arrancar el servidor de flask
+COPY requeriments.txt .
+RUN pip install --no-cache-dir -r requeriments.txt
 
-### [`nginx.conf`](https://github.com/Wolfxyz16/ipmd-yeray2/blob/main/trabajo-practico-1/nginx.conf)
+COPY ./ejecutor/export_to_mariadb.py ./export_to_mariadb.py
+
+CMD [ "python", "./export_to_mariadb.py" ]
 
 ```
-events {}
 
-http {
-    upstream flask_backend {
-        server web:5000;
-    }
+Dentro especificamos una imagen de la version 3 de python.
 
-    server {
-        listen 80;
+- Se hace una copia de `requeriments.txt` dentro del contenedor y se instalan las librerias que contiene dicho archivo.
+- Copiamos el archivo `export_to_mariadb.py`.
+- Mediante `CMD` una vez iniciado el contenedor se ejecuta el script.
 
-        location / {
-            proxy_pass http://flask_backend;
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        }
-    }
-}
+### [`ejecutor/export_to_mariadb.py`](https://github.com/Wolfxyz16/ipmd-yeray2/blob/main/trabajo-practico-2/ejecutor/export_to_mariadb.py) 
+
+```python
+
+TODO
+
+```
+TODO
+
+
+
+### [`hive/Dockerfile`](https://github.com/Wolfxyz16/ipmd-yeray2/blob/main/trabajo-practico-2/hive/Dockerfile) 
+
+```Dockerfile
+FROM apache/hive:3.1.3
+
+# Establecer el directorio de trabajo
+WORKDIR /trabajo-practico-2
+USER root
+# Asegurar permisos de root para instalar paquetes
+RUN apt-get update && apt-get install -y python3-pip
+# Copiar e instalar dependencias de Python
+RUN mkdir -p /home/hive/.beeline && chown hive:hive /home/hive/.beeline
+USER hive
+# Copiar los scripts y datos
+COPY hive/init_hive.sql init_hive.sql
+COPY userdata /app/userdata 
+
+# Ejecutar SQL en Hive y luego exportar a MariaDB
+#CMD[beeline -u jdbc:hive2://localhost:10000/ -f hive/init_hive.sql && python3 hive/export_to_mariadb.py]
+
 ```
 
-Este archivo de configuración es para **NGINX** y actúa como un **proxy inverso** para una aplicación Flask que se ejecuta en un contenedor llamado `web` en el puerto `5000`. 
+Dentro especificamos una imagen hive.
 
-- Define un grupo de servidores `upstream` llamado `flask_backend`, que apunta a `web:5000`, el nombre del servicio que hemos definido.  
-- En el bloque `server`, NGINX escucha en el puerto `80` y redirige todas las solicitudes (`/`) a `flask_backend` mediante `proxy_pass`.  
+- Se instalan los paquetes necesarios para poder ejecutar el script `init_hive.sql`
+- Se crea la carpeta `/home/hive/.beeline` para evitar errores en la ejecución.
+- Copiamos el archivo `init_hive.sql`.
+- Copiamos la carpeta `userdata` con los archivos `.avro`.
 
-### [`prometheus.yml`](https://github.com/Wolfxyz16/ipmd-yeray2/blob/main/trabajo-practico-1/prometheus.yml)
-
-```yml
-global:
-  scrape_interval: 15s
-
-scrape_configs:
-  - job_name: 'prometheus'
-    static_configs:
-      - targets: ['localhost:9090']
-
-  - job_name: 'flask'
-    static_configs:
-      - targets: ['web:5000']
-
-  - job_name: 'mysqld-exporter'
-    static_configs:
-      - targets: ['mysqld-exporter:9104']
-```
-
-Este archivo es la configuración que usara Prometheus, en este definimos qué servicios se van a monitorizar y con qué frecuencia.
-- Mediante `global` se sefine el intervalo de scrapeo, cada 15 segundos.
-- Con la función `scrape_configs` definimos las configuraciones para obtener métricas de distintos endpoint.
-- Mediante `job_name` nombramos que servicio queremos monitorear y con la opción `targets` indicamos en que puerto se estan exportando las metricas.
-
-### [`./db/init.sql`](https://github.com/Wolfxyz16/ipmd-yeray2/blob/main/trabajo-practico-1/db/init.sql)
+### [`hive/init_hive.sql`](https://github.com/Wolfxyz16/ipmd-yeray2/blob/main/trabajo-practico-2/hive/init_hive.sql) 
 
 ```sql
--- Creamos los usuarios
-CREATE USER IF NOT EXISTS 'wolfxyz'@'%' IDENTIFIED BY 'wolfxyz';
-CREATE USER IF NOT EXISTS 'prometheus'@'%' IDENTIFIED BY 'prometheus';
 
--- Creamos la base de datos
-CREATE DATABASE IF NOT EXISTS ipmd;
+-- Crear tabla externa con formato AVRO
+CREATE EXTERNAL TABLE IF NOT EXISTS usuarios
+STORED AS AVRO
+LOCATION 'hdfs://namenode/user/hive/userdata'
+TBLPROPERTIES ('avro.schema.url'='hdfs://namenode/user/hive/estructura/userdata.avsc');
 
--- Damos privilegios a los usuarios
--- prometheus necesita todos los permisos para monitorizar
-GRANT PROCESS, REPLICATION CLIENT, SELECT ON *.* TO 'prometheus'@'%';
-GRANT ALL PRIVILEGES ON ipmd TO 'wolfxyz'@'%';
-GRANT PROCESS, REPLICATION CLIENT, SELECT ON *.* TO 'wolfxyz'@'%';
-GRANT SLAVE MONITOR ON *.* TO 'wolfxyz'@'%';
-GRANT REPLICATION CLIENT ON *.* TO 'wolfxyz'@'%';
+-- Crear tabla resumen de usuarios por país
+CREATE TABLE IF NOT EXISTS summary AS
+SELECT country, COUNT(*) AS user_count
+FROM usuarios
+GROUP BY country
+ORDER BY user_count DESC
+LIMIT 10;
 
--- Aplicamos los privilegios
-FLUSH PRIVILEGES;
+```
+Este archivo nos sirve para una vez cargados los datos en HDFS podamos crear las tablas necesarias para la tarea mediante el contenedor de hive
 
--- Dentro de la base de datos de ipmd, creamos la tabla messages y añadimos dumb data
-USE ipmd;
+- Se crea la `EXTERNAL TABLE usuarios` con la estructura `userdata.avsc` y con los datos `.avro`.
+- Una vez creada la tabala `usuarios` creamos la tabla summary que contendra una pequeña proporción de los datos.
 
-CREATE TABLE IF NOT EXISTS messages (
-  clid INT NOT NULL,
-  mess TEXT NOT NULL,
-  sid TEXT NOT NULL,
-  PRIMARY KEY(clid)
-);
 
-INSERT INTO messages (clid, mess, sid) VALUES
-(1, 'Hello world from messages table!', 'abc'),
-(2, 'Test', 'def'),
-(3, 'Yeray2 is the best team from ipmd', 'abc');
+### [`namenode/Dockerfile`](https://github.com/Wolfxyz16/ipmd-yeray2/blob/main/trabajo-practico-2/namenode/Dockerfile) 
+
+```Dockerfile
+FROM apache/hadoop:3
+
+# Establecer el directorio de trabajo
+WORKDIR /trabajo-practico-2
+
+# Copiar los scripts necesarios
+COPY /namenode/init_hdfs.sh init_hdfs.sh
+
+# Ejecutar el script al iniciar el contenedor
+CMD ["/bin/bash", "./init_hdfs.sh"]
+
+
 ```
 
-Este archivo SQL crea dos usuarios (`wolfxyz` y `prometheus`) con acceso remoto, define la base de datos `ipmd` si no existe y asigna permisos específicos a cada usuario. `prometheus` recibe privilegios de monitoreo, mientras que `wolfxyz` obtiene acceso total a la base de datos `ipmd` y permisos adicionales relacionados con la replicación. Luego, se crean los privilegios con `FLUSH PRIVILEGES`. Finalmente, dentro de `ipmd`, se define una tabla llamada `messages` con tres columnas (`clid`, `mess`, `sid`) y se insertan tres registros de prueba.  
+Dentro especificamos una imagen hadoop.
 
-### [`app.py`](https://github.com/Wolfxyz16/ipmd-yeray2/blob/main/trabajo-practico-1/app.py)
+- Copiamos el archivo `init_hdfs.sh`.
+- Mediante `CMD` una vez iniciado el contedor ser ejecuta el script `init_hdfs.sh`.
 
-Los métodos de `app.py` están explicados dentro del archivo en formato python docs.
 
-### [`config.my-cnf`](https://github.com/Wolfxyz16/ipmd-yeray2/blob/main/trabajo-practico-1/config.my-cnf)
+### [`namenode/init_hdfs.sh`](https://github.com/Wolfxyz16/ipmd-yeray2/blob/main/trabajo-practico-2/namenode/init_hdfs.sh) 
 
-Guarda las métricas para que se puedan exportar al mariadb.
+```sh
+
+#!/bin/bash
+hdfs namenode
+
+echo "hola toy aqui"
+
+# Crear y asignar permisos en HDFS
+hdfs dfs -mkdir -p hdfs://namenode/user/hive
+hdfs dfs -chown hive hdfs://namenode/user/hive
+hdfs dfs -mkdir -p hdfs://namenode/user/hive/warehouse
+hdfs dfs -chown hive hdfs://namenode/user/hive/warehouse
+hdfs dfs -mkdir -p hdfs://namenode/home/hive
+hdfs dfs -chown hive hdfs://namenode/home/hive
+
+# Crear directorio en HDFS
+hdfs dfs -mkdir -p hdfs://namenode/user/hive/userdata/
+hdfs dfs -chown hive hdfs://namenode/user/hive/userdata/
+hdfs dfs -mkdir -p hdfs://namenode/user/hive/estructura/
+hdfs dfs -chown hive hdfs://namenode/user/hive/estructura/
+
+# Subir archivos AVRO a HDFS
+hdfs dfs -put /userdata/* hdfs://namenode/user/hive/userdata/
+hdfs dfs -put /estructura/* hdfs://namenode/user/hive/estructura/
+
+echo "✅ Datos AVRO cargados en HDFS correctamente."
+
+
+```
+
+Mediante este archivo, crearemos los directorios necesarios para el contenedor namenode.
+
+- Mediante `mkdir` crearemos las carpetas necesarias dentro de hdfs, siempre y cuando la carpeta se cree dentro de `hdfs://namenode/`
+- Con el comando `chown` diremos que hive sera el propietario de las carpetas creadas para que pueda acceder sin restricciones a ellas.
+- Por ultimo cargamos tanto los datos como la estructura de estos dentro de sus carpetas correspondientes.
+
+
+### [`config`](https://github.com/Wolfxyz16/ipmd-yeray2/blob/main/trabajo-practico-2/config)
+
+```
+HADOOP_HOME=/opt/hadoop
+CORE-SITE.XML_fs.default.name=hdfs://namenode
+CORE-SITE.XML_fs.defaultFS=hdfs://namenode
+HDFS-SITE.XML_dfs.namenode.rpc-address=namenode:8020
+HDFS-SITE.XML_dfs.replication=1
+ENSURE_NAMENODE_DIR=/tmp/hadoop-root/dfs/name
+
+```
+
+Declaramos la configuración del contenedor namenode para que realiza las conexciones correctamente.
+
 
 ## Servicios
 
