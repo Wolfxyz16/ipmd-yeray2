@@ -3,27 +3,53 @@
 ## Estructura del proyecto
 
 ```bash
-├── app.py
-├── config.my-cnf
+├── README.md
+├── config
+├── memoria.md
+├── requeriments.txt
+├── docker-compose.yaml
 ├── db
 │   └── init.sql
-├── docker-compose.yaml
-├── Dockerfile
-├── memoria.md
-├── nginx.conf
-├── prometheus.yml
-├── README.md
-└── requirements.txt
+├── ejecutor
+│   ├── Dockerfile
+│   └── export_to_mariadb.py
+├── estructura
+│   └── userdata.avsc
+├── hive
+│   ├── Dockerfile
+│   └── init_hive.sql
+├── namenode
+│   ├── Dockerfile
+│   └── init_hdfs.sh
+└── userdata
+    ├── userdata1.avro
+    ├── userdata2.avro
+    ├── userdata3.avro
+    ├── userdata4.avro
+    └── userdata5.avro
 ```
 
-* `Dockerfile`:  Define la imagen de Docker para la API Flask, instalando dependencias y configurando su ejecución.
-* `app.py`: Código fuente de la API REST en Flask, que gestiona operaciones sobre la base de datos.
-* `config.my-cnf`: Archivo de configuración para MySQL/MariaDB, estableciendo parámetros como credenciales y rendimiento.
-* `db/init.sql`: Script SQL que inicializa la base de datos y crea las tablas necesarias.
-* `docker-compose.yaml`: Orquesta todos los servicios (API, BD, Adminer, Prometheus, Grafana, etc.) en contenedores.
-* `nginx.conf`: Configuración de Nginx como balanceador de carga para distribuir tráfico entre instancias de la API.
-* `prometheus.yml`: Configuración de Prometheus para recolectar métricas de los servicios en ejecución.
+* `docker-compose.yaml`: Orquesta todos los servicios (BD, Hive, Namenode, Datanodes, etc.) en contenedores.
 * `requirements.txt`: Lista de dependencias de Python necesarias para la API (Flask, conectores MySQL, métricas, etc.).
+* `config`: Configuración con la que se inicara el contenedor namenode.
+
+
+* `db/init.sql`: Script SQL que inicializa la base de datos y crea las tablas necesarias. En este trabajo, las tablas creadas son para asegurar la implementación tanto de grafana como de superset
+
+* `ejecutor/Dockerfile`:  Define la imagen de Docker para un contenedor de python, instalando dependencias y configurando su ejecución.
+* `ejecutor/export_to_mariadb.py`:  Creamos conexiones con los contenedores de Hive y Mariadb para poder migrar los datos de Hive a una base de datos en Mariadb.
+
+* `estructura/`:  Carpeta que contiene la estructura de la base de datos que crearemos `userdata.avsc`.
+
+* `hive/Dockerfile`:  Define la imagen de Docker para un contenedor de Hive, instalando dependencias y configurando su ejecución.
+* `hive/init_hive.sql`:  Crearemos las tablas necesarias para el trabajo, obteniendo los datos que han sido subidos a HDFS.
+
+* `namenode/Dockerfile`:  Define la imagen de Docker para un contenedor de Hadoop, instalando dependencias y configurando su ejecución.
+* `namenode/init_hdfs.sh`:  Se inicia el NameNode de HDFS, se crean directorios, se asignan permisos y se suben archivos `.avro` a HDFS.
+
+* `userdata/`:  Carpeta que alamacena los datos de la base de datos en formato `.avro`.
+
+
 
 ### [`Dockerfile`](https://github.com/Wolfxyz16/ipmd-yeray2/blob/main/trabajo-practico-1/Dockerfile) 
 
