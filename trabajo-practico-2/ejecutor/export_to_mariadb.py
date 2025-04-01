@@ -26,14 +26,6 @@ except Exception as e:
 
 cursor_mariadb.execute("USE ipmd;")
 
-# Crear tabla en MariaDB si no existe
-cursor_mariadb.execute("""
-    CREATE TABLE IF NOT EXISTS summary (
-        country VARCHAR(255) PRIMARY KEY,
-        user_count INT NOT NULL
-    )
-""")
-
 # Insertar datos en MariaDB (evitando duplicados)
 for row in cursor_hive.fetchall():
     cursor_mariadb.execute("""

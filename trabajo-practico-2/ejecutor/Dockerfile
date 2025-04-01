@@ -6,5 +6,6 @@ COPY requeriments.txt .
 RUN pip install --no-cache-dir -r requeriments.txt
 
 COPY ./export_to_mariadb.py ./export_to_mariadb.py
+RUN chmod +x export_to_mariadb.py
 
 CMD [ "python", "./export_to_mariadb.py" ]
