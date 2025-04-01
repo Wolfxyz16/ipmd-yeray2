@@ -84,6 +84,18 @@ services:
     networks:
       - mynet
 
+  superset:
+    image: acpmialj/ipmd:ssuperset
+    container_name: superset
+    restart: always
+    ports:
+      - "8088:8088"
+    environment: 
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_USER=admin
+    networks:
+      - mynet
+
 networks:
   mynet:
     name: mynet
