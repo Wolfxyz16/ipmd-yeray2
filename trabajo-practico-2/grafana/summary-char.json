@@ -1,0 +1,97 @@
+{
+  "id": 1,
+  "type": "piechart",
+  "title": "Summary char",
+  "gridPos": {
+    "x": 0,
+    "y": 0,
+    "h": 8,
+    "w": 12
+  },
+  "fieldConfig": {
+    "defaults": {
+      "custom": {
+        "hideFrom": {
+          "tooltip": false,
+          "viz": false,
+          "legend": false
+        }
+      },
+      "color": {
+        "mode": "palette-classic"
+      },
+      "mappings": []
+    },
+    "overrides": []
+  },
+  "pluginVersion": "11.5.2",
+  "targets": [
+    {
+      "dataset": "ipmd",
+      "datasource": {
+        "type": "mysql",
+        "uid": "fehmccbjs3thca"
+      },
+      "editorMode": "builder",
+      "format": "table",
+      "rawSql": "SELECT country, user_count FROM ipmd.summary LIMIT 50 ",
+      "refId": "A",
+      "sql": {
+        "columns": [
+          {
+            "parameters": [
+              {
+                "name": "country",
+                "type": "functionParameter"
+              }
+            ],
+            "type": "function"
+          },
+          {
+            "parameters": [
+              {
+                "name": "user_count",
+                "type": "functionParameter"
+              }
+            ],
+            "type": "function"
+          }
+        ],
+        "groupBy": [
+          {
+            "property": {
+              "type": "string"
+            },
+            "type": "groupBy"
+          }
+        ],
+        "limit": 50
+      },
+      "table": "summary"
+    }
+  ],
+  "datasource": {
+    "type": "mysql",
+    "uid": "fehmccbjs3thca"
+  },
+  "options": {
+    "reduceOptions": {
+      "values": true,
+      "calcs": [
+        "lastNotNull"
+      ],
+      "fields": ""
+    },
+    "pieType": "pie",
+    "tooltip": {
+      "mode": "single",
+      "sort": "none",
+      "hideZeros": false
+    },
+    "legend": {
+      "showLegend": true,
+      "displayMode": "list",
+      "placement": "bottom"
+    }
+  }
+}
