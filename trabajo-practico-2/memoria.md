@@ -217,28 +217,113 @@ Declaramos la configuración del contenedor namenode para que realiza las conexc
 
 ## Servicios
 
-Vamos a ir explicando los servicios a la vez que el bloque de código que los define en el archivo [`docker-compose.yaml`](https://github.com/Wolfxyz16/ipmd-yeray2/blob/main/trabajo-practico-1/docker-compose.yaml).
+Vamos a ir explicando los servicios a la vez que el bloque de código que los define en el archivo [`docker-compose.yaml`](https://github.com/Wolfxyz16/ipmd-yeray2/blob/main/trabajo-practico-2/docker-compose.yaml).
 
-Dentro de este archivo definimos los servicios que levantaremos luego con el comando `docker-compose up --build`. En nuestro caso, cada servicio esta asociado a un contenedor, excepto el servicio web que lo tenemos replicado con 4 copias. Por último, todos los servicios que tenemos estan dentro de la red llamada `trabajo1`.
+Dentro de este archivo definimos los servicios que levantaremos luego con el comando `docker-compose up --build`. Para este trabajo, todos los servicios que tenemos estan dentro de la red llamada `mynet`.
 
-### Web (flask)
-En el servicio de web tenemos una simple API REST hecha con flask, un framework escrito en python. Esta es una API REST sencilla donde se implementa una base de datos con mensajes escritos, su id, y el contenedor donde se han creado.
+### Namenode
+El servicio namenode es el nodo maestro del sistema de archivos distribuido HDFS. Su función principal es gestionar la metadata del sistema de archivos, es decir, el seguimiento de qué archivos existen y en qué nodos de datos están almacenados los bloques de cada archivo.
 
 ```yaml
-  web:
-    build: .
-    expose:
-      - "5000"
-    depends_on:
-      - mariadb
-    deploy:
-      mode: replicated
-      replicas: 4
+  namenode:
+    # image: apache/hadoop:3
+    build:
+      context: .
+      dockerfile: namenode/Dockerfile
+    hostname: namenode
+    container_name: namenode
+    ports:
+      - 9870:9870
+    command: ["hdfs", "namenode"]
+    env_file:
+      - ./config
+    volumes:
+      - ./userdata:/userdata
+      - ./estructura:/estructura
+    environment:
+      ENSURE_NAMENODE_DIR: "/tmp/hadoop-root/dfs/name"
     networks:
-        - trabajo1
+      mynet:
+        ipv4_address: 172.18.0.2
 ```
 
-En el servicio web tenemos que expone el puerto 5000, depende del servicio mariadb, hasta que el servicio mariadb no este arrancado no se van crear los contenedores de web; en deploy especificamos cuántas veces queremos el contenedor replicado.
+### Datanode-1/2
+Los datanode son los nodos de almacenamiento dentro del sistema HDFS. Su función es almacenar físicamente los bloques de datos y responder a las solicitudes de lectura y escritura que provienen del namenode o de otros procesos dentro del clúster. Para este trabajo hemos definido dos datanode, lo que nos permite la replicación de datos y la tolerancia a fallos dentro del sistema distribuido.
+
+```yaml
+  datanode_1:
+    image: apache/hadoop:3
+    container_name: datanode-1
+    command: [ "hdfs", "datanode" ]
+    env_file:
+      - ./config
+    networks:
+      - mynet
+
+  datanode_2:
+    image: apache/hadoop:3
+    container_name: datanode-2
+    command: [ "hdfs", "datanode" ]
+    env_file:
+      - ./config
+    networks:
+      - mynet
+```
+
+### Hive
+Apache Hive es un sistema de almacenamiento y análisis de datos basado en Hadoop. Este servicio proporciona una interfaz SQL para consultar y gestionar datos dentro del sistema HDFS. Hive facilita el procesamiento de grandes volúmenes de datos utilizando consultas similares a SQL.
+
+```yaml
+  hive:
+    build:
+      context: .
+      dockerfile: hive/Dockerfile
+    container_name: hive-server
+    environment:
+      - SERVICE_NAME=hiveserver2
+    depends_on:
+      - namenode
+    ports:
+      - "10000:10000"
+      - "10002:10002"
+    volumes:
+      - ./hive:/hive
+    networks:
+      - mynet
+```
+
+### Ejecutor
+Este servicio lo emplearemos como enlace entre Hive y la base de datos de Mariadb. Mediante este, exportaremos las bases de datos creadas dentro del contenedor de Hive a Mariadb para su posterior visualización, tanto con grafana como con superset.
+
+```yaml
+  ejecutor:
+    build:
+      context: .
+      dockerfile: ejecutor/Dockerfile
+    container_name: ejecutor
+    volumes:
+      - ./userdata:/userdata
+      - ./estructura:/estructura
+    networks:
+      - mynet
+```
+
+### Superset
+Apache Superset es una plataforma de visualización de datos que permite crear dashboards interactivos para analizar la información almacenada en bases de datos y sistemas distribuidos como Hive o MariaDB. Este servicio proporciona una interfaz gráfica en la que se pueden crear gráficos, tablas y reportes basados en las consultas realizadas sobre las fuentes de datos conectadas. 
+
+```yaml
+  superset:
+    image: acpmialj/ipmd:ssuperset
+    container_name: superset
+    restart: always
+    ports:
+      - "8088:8088"
+    environment: 
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_USER=admin
+    networks:
+      - mynet
+```
 
 ### Mariadb
 En el servicio de Mariadb hay alojada un servidor mariadb que se encarga de almacenar toda la información. Cuando una instancia web recibe una petición REST, esta se comunica con el servidor para llevar a cabo la tarea. A la hora de crear el contenedor, montamos un volumen en el directorio `/docker-entrypoint-initdb.d/`. Dentro del volumen le pasamos un pequeño script sql para que el servidor ejecutará al iniciarse. Dentro del script creamos la base de datos, definimos las tablas, creamos los usuarios y definimos los permisos para que solo puedan acceder a la base de datos de la aplicación.
@@ -246,11 +331,12 @@ En el servicio de Mariadb hay alojada un servidor mariadb que se encarga de alma
 ```yaml
   mariadb:
     image: mariadb
-    container_name: "mariadb"
+    container_name: mariadb
     restart: always
     ports:
       - "3306:3306"
     volumes:
+      - mariadb_data:/var/lib/mysql  
       - ./db:/docker-entrypoint-initdb.d/:ro
     environment:
       MYSQL_ROOT_PASSWORD: root
@@ -258,100 +344,30 @@ En el servicio de Mariadb hay alojada un servidor mariadb que se encarga de alma
       MYSQL_PASSWORD: wolfxyz
       MYSQL_DATABASE: ipmd
     networks:
-      - trabajo1
+      - mynet
 ```
 
 El servicio mariadb contiene el servidor donde se ejecuta el SGBD mariadb. Indicamos la imagen de mariadb, definimos el nombre y que cuando el servicio se caiga o docker se detenga (`restart: always`). En la línea de puerto mapeamos el puerto 3306 con el puerto 3306 de nuestro ordenador. En volumenes le indicamos el directorio  `./db` de nuestro repositorio, en el encontramos un script que el servidor ejecutará cada vez que se inicie.
 
 En la línea de `environment` le indicamos al contenedor las variables de entorno que tiene que tener sus sistema operativo. En nuestro caso nos ayudan a pre-configurar el servidor mariadb.
 
-### Adminer
-El servicio de Adminer consiste en una interfaz web donde podemos acceder a la base de datos de mariadb. Sinceramente solo lo hemos usado para comprobar que la base de datos ha ejecutado el archivo de inicialización.
-
-```yaml
-adminer:
-    image: adminer
-    container_name: "adminer"
-    restart: always
-    ports:
-      - "8080:8080"
-    environment:
-      ADMINER_DEFAULT_SERVER: mariadb
-    networks:
-      - trabajo1
-```
-
-### mysqld-exporter
-El servicio de mysqld-exporter actúa como un adaptador que extrae métricas internas de MariaDB y las convierte en un formato compatible con Prometheus. Este servicio se encarga de recopilar información clave sobre el rendimiento de la base de datos, como el uso de conexiones, el tiempo de respuesta de las consultas, el consumo de recursos y el estado de los índices. Luego, expone estas métricas a través de un endpoint HTTP accesible por Prometheus, permitiendo su almacenamiento y análisis en tiempo real.
-
-```yaml
-mysqld-exporter:
-      image: quay.io/prometheus/mysqld-exporter
-      container_name: "mysqld-exporter"
-      restart: always
-      ports:
-        - "9104:9104"
-      command:
-        - "--config.my-cnf=/etc/.my.cnf"
-        - "--mysqld.address=mariadb:3306"
-      volumes:
-        - ./config.my-cnf:/etc/.my.cnf
-      extra_hosts:
-        - "mysqld-exporter:127.0.0.1"
-      networks:
-        - trabajo1
-```
-
-### Prometheus
-El servicio de Prometheus es una herramienta open-source para la gestión de
-datos de monitorización de aplicaciones y servicios. Mediante este servicio extraerán las métricas almacenadas en el servicio de mysqld-exporter. Aunque este, sí que nos permite visualizar métricas de manera intuitiva, prometheus actuará como datasource Grafana.
-
-```yaml
-prometheus:
-    image: prom/prometheus
-    container_name: "prometheus"
-    restart: always
-    ports:
-      - "9090:9090"
-    volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
-    networks:
-      - trabajo1
-```
 
 ### Grafana
 Grafana es una herramienta open-source para visualizar series temporales en una interfaz WebUI. Mediante Grafana se nos permite crear dashboards interactivos y personalizables para monitorear el estado y rendimiento de aplicaciones, bases de datos y servidores en tiempo real. 
-Para obtener los datos Grafana necesita de un datasource el cual almacenará y proporcionará los datos en tiempo (Prometheus).
 
 ```yaml
 grafana:
     image: grafana/grafana
-    container_name: "grafana"
+    container_name: grafana
     restart: always
     ports:
       - "3000:3000"
-    networks:
-       - trabajo1
     volumes:
-      - grafana-storage:/var/lib/grafana
+      - grafana-storage:/var/lib/grafana  
+    networks:
+      - mynet
 ```
 
-### Nginx
-El servicio de nginx contiene un servidor web nginx. En nuestro caso usamos este contenedor como balanceador de carga ya que tenemos el servicio web con replicación. Este es otro servicio que ha sido relativamente fácil de implementar ya que solo tenemos que indicar en el archivo de configuración el nombre del servicio y el puerto.
-
-```yaml
-nginx:
-    image: nginx:latest
-    container_name: "nginx"
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-    ports:
-      - "80:80"
-    depends_on:
-      - web
-    networks:
-      - trabajo1
-```
 
 ## Modo de uso
 1. Clona el repositorio:
@@ -360,7 +376,7 @@ nginx:
     ```
 2. Navega al directorio del proyecto:
     ```bash
-    cd ipmd-yeray2/trabajo-practico-1
+    cd ipmd-yeray2/trabajo-practico-2
     ```
 3. Ejecutar docker compose
     ```bash
@@ -372,52 +388,58 @@ nginx:
     docker ps
     ```
 
+    hay que cambiar cambiar
     ![Captura de pantalla donde vemos los contenedores que están en funcionamiento](imagenes/Docker_ps.png)
-
-    * Comprobamos que el servicio web+nginx esté en funcionamiento
-    ```bash
-    curl -X GET http://localhost:80/data
-    ```
-
-    ![Captura de pantalla del servicio web en funcionamiento](imagenes/replicacion.png)
-
-    * Comprobamos que el servicio web está conectado con la base de datos
-
-    ![Captura de pantalla donde vemos que la base de datos se actualiza](imagenes/insertar_borrar.png)
 
 4. Acceder a los servicios:
     ```bash
-    API Flask + nginx: http://localhost:80
+    Namenode: http://localhost:9870/
 
-    Adminer: http://localhost:8080
-
-    Prometheus: http://localhost:9090
-
+    Hive: http://localhost:10002/
+    
     Grafana: http://localhost:3000
+
+    Superset: http://localhost:8088 **Hay que asegurarse de que el servicio estan healthy**
+
+    ```
+    Añadir imagenes
+
+5. Iniciar la estructura de HDFS
+    ```bash
+    docker exec -it namenode ./init_hdfs.sh
     ```
 
-    * Podemos comprobar también que la aplicación tiene los errores controlados:
-
-    ![Captura de pantalla de una interfaz de comandos](imagenes/controlError_get.png)
-
-    ![Captura de pantalla de una interfaz de comandos](imagenes/controlError_post.png)
-
-    ![Captura de pantalla de una interfaz de comandos](imagenes/controlError_delete.png)
-
-5. Prometheus
-
-    Si entramos en [http://localhost:9090](http://localhost:9090) podemos ver los servicios que monitorea prometheus.
-
-    ![Captura de pantalla con los targets de prometheus](imagenes/Prometheus.png)
-
-6. Paneles de grafana
-
-     ```bash
-    Panel para MySQL Exporter: código 14057 de la biblioteca de paneles de Grafana
-    Panel para aplicaciones Flask: se facilita en formato JSON
-    Panel extra para mariadb utiles : código 13106 de la biblioteca de paneles de Grafana
+6. Comprobamos que tenemos los archivos en HDFS
+    ```
+    docker exec -it datanode-1 hdfs dfs -ls hdfs://namenode/user/hive/userdata
+    docker exec -it datanode-1 hdfs dfs -ls hdfs://namenode/user/hive/estructura
+    ```
+7. Creamos la base de datos en Hive
+    ```
+    docker exec -it hive-server bash
+    beeline -u jdbc:hive2://localhost:10000/ -f hive/init_hive.sql
     ```
 
-    ![Código json proporcionado en egela](imagenes/grafana_json.png)
+8. Exportar los datos a mariadb
+    ```bash
+    docker exec -it ejecutor python3 ejecutor/export_to_mariadb.py
+    ```
 
-    ![Panel para mysql exporter](imagenes/grafana_sql.png)
+9. Paneles de grafana
+
+    Crearemos una panel a mano mediante grafana. 
+
+    hay que cambiar
+    ![Panel para la base de datos](imagenes/grafana_sql.png)
+
+10. Paneles de superset
+
+    Crearemos una panel a mano mediante superset. 
+
+    hay que cambiar
+    ![Panel para la base de datos](imagenes/grafana_sql.png)
+
+
+
+
+
