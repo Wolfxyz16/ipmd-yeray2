@@ -14,6 +14,7 @@ services:
     volumes:
       - ./userdata:/userdata
       - ./estructura:/estructura
+      - ./init_hdfs.sh:/init_hdfs.sh
     environment:
       ENSURE_NAMENODE_DIR: "/tmp/hadoop-root/dfs/name"
     networks:
@@ -79,6 +80,9 @@ services:
     restart: always
     ports:
       - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: wolfxyz
+      GF_SECURITY_ADMIN_PASSWORD: wolfxyz
     volumes:
       - grafana-storage:/var/lib/grafana  
     networks:
