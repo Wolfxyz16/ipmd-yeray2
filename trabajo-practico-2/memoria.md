@@ -438,8 +438,3 @@ grafana:
 
     hay que cambiar
     ![Panel para la base de datos](imagenes/grafana_sql.png)
-
-
-
-
-
