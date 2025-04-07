@@ -3,16 +3,15 @@
 ## Estructura del proyecto
 
 ```bash
-├── README.md
 ├── config
-├── memoria.md
-├── requeriments.txt
-├── docker-compose.yaml
 ├── db
 │   └── init.sql
+├── docker-compose.yaml
 ├── ejecutor
 │   ├── Dockerfile
-│   └── export_to_mariadb.py
+│   ├── export_to_mariadb.py
+│   ├── init.sh
+│   └── requeriments.txt
 ├── hive
 │   ├── Dockerfile
 │   └── init_hive.sql
@@ -30,14 +29,15 @@
 ```
 
 * `docker-compose.yaml`: Orquesta todos los servicios (BD, Hive, Namenode, Datanodes, etc.) en contenedores.
-* `requirements.txt`: Lista de dependencias de Python necesarias para la API (Flask, conectores MySQL, métricas, etc.).
-* `config`: Configuración con la que se inicara el contenedor namenode.
+* `config`: Configuración con la que se inicara el contenedor namenode y datanode.
 
 
 * `db/init.sql`: Script SQL que inicializa la base de datos y crea las tablas necesarias. En este trabajo, las tablas creadas son para asegurar la implementación tanto de grafana como de superset
 
+* `ejecutor/init.sh`: Script para la ejecución del contenedor que va a copiar los datos desde hive a mariadb.
 * `ejecutor/Dockerfile`:  Define la imagen de Docker para un contenedor de python, instalando dependencias y configurando su ejecución.
 * `ejecutor/export_to_mariadb.py`:  Creamos conexiones con los contenedores de Hive y Mariadb para poder migrar los datos de Hive a una base de datos en Mariadb.
+* `ejecutor/requeriments.txt`: Lista de dependencias de python necesarias para ejecutar el contenedor.
 
 * `hive/Dockerfile`:  Define la imagen de Docker para un contenedor de Hive, instalando dependencias y configurando su ejecución.
 * `hive/init_hive.sql`:  Crearemos las tablas necesarias para el trabajo, obteniendo los datos que han sido subidos a HDFS.
@@ -46,12 +46,17 @@
 * `namenode/init_hdfs.sh`:  Se inicia el NameNode de HDFS, se crean directorios, se asignan permisos y se suben archivos `.avro` a HDFS.
 
 * `estructura/`:  Carpeta que contiene la estructura de la base de datos que crearemos `userdata.avsc`.
-
 * `userdata/`:  Carpeta que alamacena los datos de la base de datos en formato `.avro`.
 
+---
 
+## Servicio «ejecutor»
+
+Técnicamente no es un servicio ya que lo ejecutamos manualmente una vez que hive ya tiene datos. Este contenedor se encarga de pasar los datos que tenemos en hive a una tabla en nuestro servicio mariadb. Consiste en una imagen `python:3` que ejecuta un script que hemos programado. 
 
 ### [`ejecutor/Dockerfile`](https://github.com/Wolfxyz16/ipmd-yeray2/blob/main/trabajo-practico-2/ejecutor/Dockerfile) 
+
+Imagen del contendor.
 
 ```Dockerfile
 FROM python:3
@@ -61,57 +66,67 @@ WORKDIR /trabajo-practico-2
 COPY requeriments.txt .
 RUN pip install --no-cache-dir -r requeriments.txt
 
-COPY ./ejecutor/export_to_mariadb.py ./export_to_mariadb.py
+COPY ./export_to_mariadb.py ./export_to_mariadb.py
+RUN chmod +x export_to_mariadb.py
 
 CMD [ "python", "./export_to_mariadb.py" ]
-
 ```
 
-Dentro especificamos una imagen de la version 3 de python.
+### [`ejecutor/init.sh`](https://github.com/Wolfxyz16/ipmd-yeray2/blob/main/trabajo-practico-2/ejecutor/init.sh)
 
-- Se hace una copia de `requeriments.txt` dentro del contenedor y se instalan las librerias que contiene dicho archivo.
-- Copiamos el archivo `export_to_mariadb.py`.
-- Mediante `CMD` una vez iniciado el contenedor se ejecuta el script.
+Script que construye la imagen, lanza el contenedor y por último elimina la imágen.
+
+```sh
+#!/usr/bin/env bash
+cd "$(dirname "$0")"
+
+docker build -t ejecutor ../ejecutor
+docker run --name=ejecutor --network=mynet ejecutor
+
+# habría que comprobar que el comando se llega a ejecutar
+docker stop ejecutor
+docker rm ejecutor
+docker image rm ejecutor
+```
 
 ### [`ejecutor/export_to_mariadb.py`](https://github.com/Wolfxyz16/ipmd-yeray2/blob/main/trabajo-practico-2/ejecutor/export_to_mariadb.py) 
 
-```python
+Consiste en crear dos conexiones, una a mariadb y la otra a hive. Una vez las conexiones son correctas copiamos los datos dentro de la tabla `summary` de mariadb. Tenemos que ejecutarlo cuando hive ya tenga los datos cargados y cuando nos aseguremos de que mariadb se está ejecutando.
 
-TODO
-
-```
-TODO
-
-
+## Servicio Hive
 
 ### [`hive/Dockerfile`](https://github.com/Wolfxyz16/ipmd-yeray2/blob/main/trabajo-practico-2/hive/Dockerfile) 
 
+Hive nos permite almacenar los datos y poder consultarlos usando sentencias SQL. Esta es la imágen de Docker con el que lo definimos. Usamos la imágen oficial de `apache/hive:4.0.0` y luego le añadimos los el script de inicialización y los datos.
+
 ```Dockerfile
-FROM apache/hive:3.1.3
+FROM apache/hive:4.0.0
 
 # Establecer el directorio de trabajo
 WORKDIR /trabajo-practico-2
 USER root
+
 # Asegurar permisos de root para instalar paquetes
-RUN apt-get update && apt-get install -y python3-pip
+RUN apt-get update && apt-get install -y python3-pip 
+
 # Copiar e instalar dependencias de Python
 RUN mkdir -p /home/hive/.beeline && chown hive:hive /home/hive/.beeline
 USER hive
+
 # Copiar los scripts y datos
 COPY hive/init_hive.sql init_hive.sql
 COPY userdata /app/userdata 
 
-# Ejecutar SQL en Hive y luego exportar a MariaDB
-#CMD[beeline -u jdbc:hive2://localhost:10000/ -f hive/init_hive.sql && python3 hive/export_to_mariadb.py]
+# # Añadimos los archivos de configuracion
+# ADD hive/hive-site.xml /opt/hive/conf/hive-site.xml
 
+# Ejecutar SQL en Hive y luego exportar a MariaDB
+CMD [beeline -u jdbc:hive2://localhost:10000/ -f hive/init_hive.sql]
 ```
 
-Dentro especificamos una imagen hive.
+En el script de inicialización de hive le indicamos que cree una tabla usando los datos que encuentre en el directorio de `hdfs`. Debemos especificarle también la estructura que se encuentra en otro directorio de `hdfs`.
 
-- Se instalan los paquetes necesarios para poder ejecutar el script `init_hive.sql`
-- Se crea la carpeta `/home/hive/.beeline` para evitar errores en la ejecución.
-- Copiamos el archivo `init_hive.sql`.
-- Copiamos la carpeta `userdata` con los archivos `.avro`.
+Una vez lo tenemos creamos una tabla en hive llamada summary que cuenta cuántos usuarios hay por cada país. Esta es la tabla que vamos a exportar luego a mariadb con el contenedor `ejecutor`.
 
 ### [`hive/init_hive.sql`](https://github.com/Wolfxyz16/ipmd-yeray2/blob/main/trabajo-practico-2/hive/init_hive.sql) 
 
@@ -132,11 +147,10 @@ ORDER BY user_count DESC
 LIMIT 10;
 
 ```
-Este archivo nos sirve para una vez cargados los datos en HDFS podamos crear las tablas necesarias para la tarea mediante el contenedor de hive
 
-- Se crea la `EXTERNAL TABLE usuarios` con la estructura `userdata.avsc` y con los datos `.avro`.
-- Una vez creada la tabala `usuarios` creamos la tabla summary que contendra una pequeña proporción de los datos.
+## Almacenamiento en HDFS, namenode y datanode.
 
+[TODO]
 
 ### [`namenode/Dockerfile`](https://github.com/Wolfxyz16/ipmd-yeray2/blob/main/trabajo-practico-2/namenode/Dockerfile) 
 
