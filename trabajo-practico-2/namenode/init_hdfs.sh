@@ -1,6 +1,4 @@
 #!/bin/bash
-hdfs namenode
-
 echo "Creating hdfs project structure..."
 
 # Crear y asignar permisos en HDFS
