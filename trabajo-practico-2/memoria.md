@@ -1,4 +1,4 @@
-# Trabajo práctico 1. Yeray Carretero y Yeray Li.
+# Trabajo práctico 2. Yeray Carretero y Yeray Li.
 
 ## Estructura del proyecto
 
@@ -48,7 +48,7 @@
 * `estructura/`:  Carpeta que contiene la estructura de la base de datos que crearemos `userdata.avsc`.
 * `userdata/`:  Carpeta que alamacena los datos de la base de datos en formato `.avro`.
 
----
+Ahora vamos a explicar que hace cada servicio que se detallada en el archivo `docker-compose.yaml`.
 
 ## Servicio «ejecutor»
 
@@ -124,11 +124,11 @@ COPY userdata /app/userdata
 CMD [beeline -u jdbc:hive2://localhost:10000/ -f hive/init_hive.sql]
 ```
 
+### [`hive/init_hive.sql`](https://github.com/Wolfxyz16/ipmd-yeray2/blob/main/trabajo-practico-2/hive/init_hive.sql) 
+
 En el script de inicialización de hive le indicamos que cree una tabla usando los datos que encuentre en el directorio de `hdfs`. Debemos especificarle también la estructura que se encuentra en otro directorio de `hdfs`.
 
 Una vez lo tenemos creamos una tabla en hive llamada summary que cuenta cuántos usuarios hay por cada país. Esta es la tabla que vamos a exportar luego a mariadb con el contenedor `ejecutor`.
-
-### [`hive/init_hive.sql`](https://github.com/Wolfxyz16/ipmd-yeray2/blob/main/trabajo-practico-2/hive/init_hive.sql) 
 
 ```sql
 
@@ -150,9 +150,19 @@ LIMIT 10;
 
 ## Almacenamiento en HDFS, namenode y datanode.
 
-[TODO]
+El almacenamiento en HDFS nos permite guardar grandes volúmenes de datos y está dividido en dos servicios diferentes, el namenode y el datanode.
+
+El namenode es el componente encargado de gestionar la estructura de directorios y la metadata de los archivos en HDFS. Almacena información sobre qué bloques de datos están almacenados en qué datanode. No guarda los datos reales, solo las ubicaciones de los bloques. Si el namenode falla, puede comprometer la integridad del sistema.
+
+El datanode son los encargados de almacenar físicamente los bloques de datos. Cada datanode gestiona los datos que le asignan y realiza operaciones de lectura y escritura según las peticiones del cliente. Además, envían información sobre el estado de los bloques al namenode para asegurar la consistencia y la replicación adecuada de los datos.
+
+La elección de imágenes han sido las oficiales de `apache/hadoop:3` que cuentan con la versión más actualizada. Dentro del archivo `yaml` le indicamos a cada servicio con qué comando tiene que arrancar.
+
+Para los datanodes (en nuestro caso dos), no necesitamos un archivo `Dockerfile`. Sin embargo, para el namenode, sí lo necesitamos. En él vamos a copiar el script que se encargará de crear la estructura de datos (los directorios) con los que vamos a trabajar.
 
 ### [`namenode/Dockerfile`](https://github.com/Wolfxyz16/ipmd-yeray2/blob/main/trabajo-practico-2/namenode/Dockerfile) 
+
+Este es el `Dockerfile` que usaremos para especificar al namenode.
 
 ```Dockerfile
 FROM apache/hadoop:3
@@ -165,24 +175,19 @@ COPY /namenode/init_hdfs.sh init_hdfs.sh
 
 # Ejecutar el script al iniciar el contenedor
 CMD ["/bin/bash", "./init_hdfs.sh"]
-
-
 ```
-
-Dentro especificamos una imagen hadoop.
-
-- Copiamos el archivo `init_hdfs.sh`.
-- Mediante `CMD` una vez iniciado el contedor ser ejecuta el script `init_hdfs.sh`.
-
 
 ### [`namenode/init_hdfs.sh`](https://github.com/Wolfxyz16/ipmd-yeray2/blob/main/trabajo-practico-2/namenode/init_hdfs.sh) 
 
+Mediante este archivo, crearemos los directorios necesarios para el contenedor namenode.
+
+- Mediante `mkdir` crearemos las carpetas necesarias dentro de hdfs, siempre y cuando la carpeta se cree dentro de `hdfs://namenode/`
+- Con el comando `chown` diremos que hive sera el propietario de las carpetas creadas para que pueda acceder sin restricciones a ellas.
+- Por ultimo cargamos tanto los datos como la estructura de estos dentro de sus carpetas correspondientes.
+
 ```sh
-
 #!/bin/bash
-hdfs namenode
-
-echo "hola toy aqui"
+echo "Creating hdfs project structure..."
 
 # Crear y asignar permisos en HDFS
 hdfs dfs -mkdir -p hdfs://namenode/user/hive
@@ -198,23 +203,18 @@ hdfs dfs -chown hive hdfs://namenode/user/hive/userdata/
 hdfs dfs -mkdir -p hdfs://namenode/user/hive/estructura/
 hdfs dfs -chown hive hdfs://namenode/user/hive/estructura/
 
+echo "Uploading data to hdfs..."
+
 # Subir archivos AVRO a HDFS
 hdfs dfs -put /userdata/* hdfs://namenode/user/hive/userdata/
 hdfs dfs -put /estructura/* hdfs://namenode/user/hive/estructura/
 
 echo "✅ Datos AVRO cargados en HDFS correctamente."
-
-
 ```
 
-Mediante este archivo, crearemos los directorios necesarios para el contenedor namenode.
-
-- Mediante `mkdir` crearemos las carpetas necesarias dentro de hdfs, siempre y cuando la carpeta se cree dentro de `hdfs://namenode/`
-- Con el comando `chown` diremos que hive sera el propietario de las carpetas creadas para que pueda acceder sin restricciones a ellas.
-- Por ultimo cargamos tanto los datos como la estructura de estos dentro de sus carpetas correspondientes.
-
-
 ### [`config`](https://github.com/Wolfxyz16/ipmd-yeray2/blob/main/trabajo-practico-2/config)
+
+Declaramos la configuración del contenedor namenode para que realiza las conexciones correctamente.
 
 ```
 HADOOP_HOME=/opt/hadoop
@@ -223,11 +223,38 @@ CORE-SITE.XML_fs.defaultFS=hdfs://namenode
 HDFS-SITE.XML_dfs.namenode.rpc-address=namenode:8020
 HDFS-SITE.XML_dfs.replication=1
 ENSURE_NAMENODE_DIR=/tmp/hadoop-root/dfs/name
-
 ```
 
-Declaramos la configuración del contenedor namenode para que realiza las conexciones correctamente.
+## Servicio mariadb
 
+### [`init.sql`](https://github.com/Wolfxyz16/ipmd-yeray2/blob/main/trabajo-practico-2/db/init.sql)
+
+En este archivo creamos los usuarios por defecto, damos privilegios y TODO
+
+```sql
+-- Creamos los usuarios
+CREATE USER IF NOT EXISTS 'wolfxyz'@'%' IDENTIFIED BY 'wolfxyz';
+CREATE USER IF NOT EXISTS 'grafana'@'%' IDENTIFIED BY 'grafana';
+
+-- Creamos la base de datos
+CREATE DATABASE IF NOT EXISTS ipmd;
+
+-- Creamos la tabla summary
+CREATE TABLE IF NOT EXISTS ipmd.summary (
+    country VARCHAR(255) PRIMARY KEY,
+    user_count INT NOT NULL
+);
+
+-- Damos privilegios a los usuarios
+GRANT ALL PRIVILEGES ON ipmd TO 'wolfxyz'@'%';
+GRANT SELECT ON ipmd TO 'grafana'@'%';
+GRANT PROCESS, REPLICATION CLIENT, SELECT ON *.* TO 'wolfxyz'@'%';
+GRANT SLAVE MONITOR ON *.* TO 'wolfxyz'@'%';
+GRANT REPLICATION CLIENT ON *.* TO 'wolfxyz'@'%';
+
+-- Aplicamos los privilegios
+FLUSH PRIVILEGES;
+```
 
 ## Servicios
 
@@ -236,6 +263,7 @@ Vamos a ir explicando los servicios a la vez que el bloque de código que los de
 Dentro de este archivo definimos los servicios que levantaremos luego con el comando `docker-compose up --build`. Para este trabajo, todos los servicios que tenemos estan dentro de la red llamada `mynet`.
 
 ### Namenode
+
 El servicio namenode es el nodo maestro del sistema de archivos distribuido HDFS. Su función principal es gestionar la metadata del sistema de archivos, es decir, el seguimiento de qué archivos existen y en qué nodos de datos están almacenados los bloques de cada archivo.
 
 ```yaml
@@ -306,23 +334,8 @@ Apache Hive es un sistema de almacenamiento y análisis de datos basado en Hadoo
       - mynet
 ```
 
-### Ejecutor
-Este servicio lo emplearemos como enlace entre Hive y la base de datos de Mariadb. Mediante este, exportaremos las bases de datos creadas dentro del contenedor de Hive a Mariadb para su posterior visualización, tanto con grafana como con superset.
-
-```yaml
-  ejecutor:
-    build:
-      context: .
-      dockerfile: ejecutor/Dockerfile
-    container_name: ejecutor
-    volumes:
-      - ./userdata:/userdata
-      - ./estructura:/estructura
-    networks:
-      - mynet
-```
-
 ### Superset
+
 Apache Superset es una plataforma de visualización de datos que permite crear dashboards interactivos para analizar la información almacenada en bases de datos y sistemas distribuidos como Hive o MariaDB. Este servicio proporciona una interfaz gráfica en la que se pueden crear gráficos, tablas y reportes basados en las consultas realizadas sobre las fuentes de datos conectadas. 
 
 ```yaml
@@ -340,6 +353,7 @@ Apache Superset es una plataforma de visualización de datos que permite crear d
 ```
 
 ### Mariadb
+
 En el servicio de Mariadb hay alojada un servidor mariadb que se encarga de almacenar toda la información. Cuando una instancia web recibe una petición REST, esta se comunica con el servidor para llevar a cabo la tarea. A la hora de crear el contenedor, montamos un volumen en el directorio `/docker-entrypoint-initdb.d/`. Dentro del volumen le pasamos un pequeño script sql para que el servidor ejecutará al iniciarse. Dentro del script creamos la base de datos, definimos las tablas, creamos los usuarios y definimos los permisos para que solo puedan acceder a la base de datos de la aplicación.
 
 ```yaml
@@ -365,8 +379,8 @@ El servicio mariadb contiene el servidor donde se ejecuta el SGBD mariadb. Indic
 
 En la línea de `environment` le indicamos al contenedor las variables de entorno que tiene que tener sus sistema operativo. En nuestro caso nos ayudan a pre-configurar el servidor mariadb.
 
-
 ### Grafana
+
 Grafana es una herramienta open-source para visualizar series temporales en una interfaz WebUI. Mediante Grafana se nos permite crear dashboards interactivos y personalizables para monitorear el estado y rendimiento de aplicaciones, bases de datos y servidores en tiempo real. 
 
 ```yaml
@@ -382,6 +396,7 @@ grafana:
       - mynet
 ```
 
+---
 
 ## Modo de uso
 1. Clona el repositorio:
