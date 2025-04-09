@@ -556,6 +556,19 @@ Rellenamos el formulario con las siguientes opciones:
 
 Ahora pulsamos en *create dataset* y pasamos a la siguiente pantalla.
 
+Dentro del menú de creación de un nuevo *dataset* añadimos las siguiente opciones. La base de datos será la que hemos llamado **Mariadb**, el *schema* será ipmd y la tabla será *summary*. Pulsamos en *Create dataset and create chart*.
+
+![Captura de pantalla de la creación del dataset](img/superset3.png)
+
+Ahora en la barra superior de navegación debemos ir a la opción de **Charts**. Allí nos saldrá una opción con el icono de importar los *charts*. Podemos seleccionar los dos *charts.zip* que tenemos ya creados previamente y que se encuentran en la carpeta de `superset/`
+
+![Captura de pantalla con el procesor de importación de un chart](img/superset4.png)
+
+Ahora solo nos queda visualizar los resultados de estos dos *charts* diferentes. Tenemos uno de tipo *pie* muy parecido al de Grafana y otro de tipo mapamundi donde podemos ver las métricas en un mapa global agrupadas por paises.
+
+![Captura de pantalla del chart de tipo pie](img/summary-pie.jpg)
+
+![Captura de pantalla del chart de tipo country](img/summary-country.jpg)
 
 ### 8. The end (?)
 
