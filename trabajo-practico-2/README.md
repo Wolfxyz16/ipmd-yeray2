@@ -90,7 +90,7 @@ Ahora en el menú de grafana seleccionaremos la opción **Dashboards** y dentro 
 
 Dentro de este menú, nos aparecerán tres opciones diferentes. Nosotros debemos seleccionar la que dice **+ Add visualization**.
 
-![Captura de pantalla donde vemos la opcion de grafana que añadir una visualización](img/grafana-dahsboard1.png)
+![Captura de pantalla donde vemos la opcion de grafana que añadir una visualización](img/grafana-dashboard1.png)
 
 Ahora debemos seleccionar el *data source* que habiamos creado antes.
 
