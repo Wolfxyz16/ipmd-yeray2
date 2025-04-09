@@ -48,7 +48,7 @@
 * `estructura/`:  Carpeta que contiene la estructura de la base de datos que crearemos `userdata.avsc`.
 * `userdata/`:  Carpeta que alamacena los datos de la base de datos en formato `.avro`.
 
-Ahora vamos a explicar que hace cada servicio que se detallada en el archivo `docker-compose.yaml`.
+Ahora vamos a explicar que hace cada servicio que se detallada en el archivo `docker-compose.yaml` y los archivos que lo componen.
 
 ## Servicio «ejecutor»
 
@@ -255,9 +255,9 @@ GRANT REPLICATION CLIENT ON *.* TO 'wolfxyz'@'%';
 FLUSH PRIVILEGES;
 ```
 
-## docker-compose
+## [`docker-compose.yaml`](https://github.com/Wolfxyz16/ipmd-yeray2/blob/main/trabajo-practico-2/docker-compose.yaml)
 
-Vamos a ir explicando los servicios a la vez que el bloque de código que los define en el archivo [`docker-compose.yaml`](https://github.com/Wolfxyz16/ipmd-yeray2/blob/main/trabajo-practico-2/docker-compose.yaml).
+Vamos a ir explicando la especificación de cada servicio en el archivo [`docker-compose.yaml`](https://github.com/Wolfxyz16/ipmd-yeray2/blob/main/trabajo-practico-2/docker-compose.yaml).
 
 Dentro de este archivo definimos los servicios que levantaremos luego con el comando `docker-compose up --build`. Para este trabajo, todos los servicios que tenemos estan dentro de la red llamada `mynet`.
 
@@ -288,8 +288,9 @@ El servicio namenode es el nodo maestro del sistema de archivos distribuido HDFS
         ipv4_address: 172.18.0.2
 ```
 
-### Datanode-1/2
-Los datanode son los nodos de almacenamiento dentro del sistema HDFS. Su función es almacenar físicamente los bloques de datos y responder a las solicitudes de lectura y escritura que provienen del namenode o de otros procesos dentro del clúster. Para este trabajo hemos definido dos datanode, lo que nos permite la replicación de datos y la tolerancia a fallos dentro del sistema distribuido.
+### Datanode 1-2
+
+Los datanode son los nodos de almacenamiento dentro del sistema HDFS. Su función es almacenar físicamente los bloques de datos y responder a las solicitudes de lectura y escritura que provienen del namenode o de otros procesos dentro del clúster. Para este trabajo hemos definido dos datanode, lo que nos permite la replicación de datos y la tolerancia a fallos dentro del sistema distribuido. Con la línea `command` le indicamos que comando queremos ejecutar cuando arranque el contendor.
 
 ```yaml
   datanode_1:
@@ -312,7 +313,8 @@ Los datanode son los nodos de almacenamiento dentro del sistema HDFS. Su funció
 ```
 
 ### Hive
-Apache Hive es un sistema de almacenamiento y análisis de datos basado en Hadoop. Este servicio proporciona una interfaz SQL para consultar y gestionar datos dentro del sistema HDFS. Hive facilita el procesamiento de grandes volúmenes de datos utilizando consultas similares a SQL.
+
+Apache Hive es un sistema de almacenamiento y análisis de datos basado en Hadoop. Este servicio proporciona una interfaz SQL para consultar y gestionar datos dentro del sistema HDFS. Hive facilita el procesamiento de grandes volúmenes de datos utilizando consultas similares a SQL. Debemos mapear los puertos de hive ya que querremos acceder desde nuestro ordenador a la interfaz web. También es necesaria la opción `depends_on` ya que hive debe esperar a que HDFS arranque antes de poder empezar.
 
 ```yaml
   hive:
@@ -398,26 +400,37 @@ grafana:
 ---
 
 ## Modo de uso
-1. Clona el repositorio:
-    ```bash
-    git clone https://github.com/Wolfxyz16/ipmd-yeray2.git
-    ```
-2. Navega al directorio del proyecto:
-    ```bash
-    cd ipmd-yeray2/trabajo-practico-2
-    ```
-3. Ejecutar docker compose
-    ```bash
-    docker compose up -d
-    ```
 
-    * Comprobamos que los contenedores esten levantados
-    ```bash
-    docker ps
-    ```
+Vamos a explicar paso a paso como replicar este proyecto.
 
-    hay que cambiar cambiar
-    ![Captura de pantalla donde vemos los contenedores que están en funcionamiento](imagenes/Docker_ps.png)
+1. Clona el repositorio y accede al directorio del segundo proyecto:
+
+```bash
+git clone https://github.com/Wolfxyz16/ipmd-yeray2.git
+cd ipmd-yeray2/trabajo-practico-2
+```
+
+3. Construimos la imagen de docker compose:
+
+```bash
+docker compose compose build
+```
+
+Lo arrancamos y lo ponemos en segundo plano.
+
+```bash
+docker compose compose build
+```
+
+Ahora podemos comprobar que los contendores están levantados con el siguiente comando
+
+```bash
+docker ps
+```
+
+Deberiamos ver los siguientes contenedores
+
+![Captura de pantalla donde vemos los contenedores que están en funcionamiento](img/docker-ps.png)
 
 4. Acceder a los servicios:
     ```bash
