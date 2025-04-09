@@ -403,14 +403,14 @@ grafana:
 
 Vamos a explicar paso a paso como replicar este proyecto.
 
-1. Clona el repositorio y accede al directorio del segundo proyecto:
+## 1. Clona el repositorio y accede al directorio del segundo proyecto:
 
 ```bash
 git clone https://github.com/Wolfxyz16/ipmd-yeray2.git
 cd ipmd-yeray2/trabajo-practico-2
 ```
 
-2. Construir y arrancar el `docker-compose`
+## 2. Construir y arrancar el `docker-compose`
 
 ```bash
 docker compose compose build
@@ -434,7 +434,7 @@ Deberiamos ver los siguientes contenedores
 
 Debemos esperar unos segundos antes de continuar con la guia con el fin de que todos los contenedores arranquen correctamente, sobre todo la base de datos mariadb.
 
-3. Crear la estructura HDFS
+## 3. Crear la estructura HDFS
 
 Ejecutamos el archivo `./init_hdfs.sh` para iniciar correctamente la configuración de namenode y cargar los archivos correctamente en hive:
 
@@ -451,7 +451,7 @@ docker exec -it datanode-1 hdfs dfs -ls hdfs://namenode/user/hive/estructura
 
 ![Captura de pantalla de una terminal donde se ven el resultado de los dos comandos anteriores](img/hdfs.png)
 
-4. Creamos el servidor hive
+## 4. Creamos el servidor hive
 
 Una vez los datos estan añadidos correctamente nos metemos en el contendor de hive y ejecutamos el `init_hive.sql`:
 
@@ -469,7 +469,7 @@ El resultado que debemos ver es algo parecido a esto:
 
 ![Captura de pantalla de una terminal donde vemos las tablas creadas en hive](img/hive-tables.png)
 
-5. Llenar la base de datos, mariadb
+## 5. Llenar la base de datos, mariadb
 
 El siguiente paso a realizar será pasar la información de las tablas que contiene hive a nuestro servidor mariadb que tenemos desplegado en un contendor. Para ello usaremos un *script* que es encuentra en la carpeta `ejecutor`. Ejecutamos el *script* `init.sh`:
 
@@ -485,11 +485,11 @@ docker exec mariadb mariadb --user=wolfxyz --password=wolfxyz --table ipmd -e "S
 
 ![Captura de pantalla de una terminal donde vemos el resultado de la consulta a la base de datos mariadb](img/mariadb.png)
 
-6. Grafana
+## 6. Grafana
 
 Para la creación de Grafana debemos acceder a su interfaz web desde un navegador. Así que vamos a ir a la dirección, 
 
-[## http://localhost:3000/login](http://localhost:3000/login)
+## [http://localhost:3000/login](http://localhost:3000/login)
 
 7. Paneles de superset
 
