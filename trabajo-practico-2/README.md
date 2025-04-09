@@ -113,7 +113,41 @@ Ahora deberiamos ver un gráfico parecido a este donde cada color represanta a u
 ![Captura de pantalla donde vemos el gráfico de circulos final de grafana](img/grafana-dashboard5.png)
 
 ### Superset
-[TODO]
+
+Superset nos permite también visualizar la tabla summary como alternativa a Grafana.
+
+El primer paso será el inicio de sesión donde las credenciales vuelven a ser wolfxyz wolfxyz.
+
+![Captura de pantalla de Superset y de su inicio de sesión](img/superset1.png)
+
+Dentro del **+** que tenemos arriba a la derecha debemos seleccionar la opción *Data > Connect to database*.
+
+Rellenamos el formulario con las siguientes opciones:
+
+* host: 172.18.0.10
+* port: 3306
+* database name: ipmd
+* username: wolfxyz
+* password: wolfxyz
+* display name: Mariadb
+
+![Captura de pantalla de la creación de la conexión con la base de datos](img/superset2.png)
+
+Ahora pulsamos en *create dataset* y pasamos a la siguiente pantalla.
+
+Dentro del menú de creación de un nuevo *dataset* añadimos las siguiente opciones. La base de datos será la que hemos llamado **Mariadb**, el *schema* será ipmd y la tabla será *summary*. Pulsamos en *Create dataset and create chart*.
+
+![Captura de pantalla de la creación del dataset](img/superset3.png)
+
+Ahora en la barra superior de navegación debemos ir a la opción de **Charts**. Allí nos saldrá una opción con el icono de importar los *charts*. Podemos seleccionar los dos *charts.zip* que tenemos ya creados previamente y que se encuentran en la carpeta de `superset/`
+
+![Captura de pantalla con el procesor de importación de un chart](img/superset4.png)
+
+Ahora solo nos queda visualizar los resultados de estos dos *charts* diferentes. Tenemos uno de tipo *pie* muy parecido al de Grafana y otro de tipo mapamundi donde podemos ver las métricas en un mapa global agrupadas por paises.
+
+![Captura de pantalla del chart de tipo pie](img/summary-pie.jpg)
+
+![Captura de pantalla del chart de tipo country](img/summary-country.jpg)
 
 ### End
 
