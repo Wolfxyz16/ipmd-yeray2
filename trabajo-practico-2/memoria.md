@@ -131,7 +131,6 @@ En el script de inicialización de hive le indicamos que cree una tabla usando l
 Una vez lo tenemos creamos una tabla en hive llamada summary que cuenta cuántos usuarios hay por cada país. Esta es la tabla que vamos a exportar luego a mariadb con el contenedor `ejecutor`.
 
 ```sql
-
 -- Crear tabla externa con formato AVRO
 CREATE EXTERNAL TABLE IF NOT EXISTS usuarios
 STORED AS AVRO
@@ -148,7 +147,7 @@ LIMIT 10;
 
 ```
 
-## Almacenamiento en HDFS, namenode y datanode.
+## Servicio HDFS, namenode y datanode.
 
 El almacenamiento en HDFS nos permite guardar grandes volúmenes de datos y está dividido en dos servicios diferentes, el namenode y el datanode.
 
@@ -229,7 +228,7 @@ ENSURE_NAMENODE_DIR=/tmp/hadoop-root/dfs/name
 
 ### [`init.sql`](https://github.com/Wolfxyz16/ipmd-yeray2/blob/main/trabajo-practico-2/db/init.sql)
 
-En este archivo creamos los usuarios por defecto, damos privilegios y TODO
+En este archivo creamos los usuarios por defecto, damos privilegios y creamos la tabla `summary`.
 
 ```sql
 -- Creamos los usuarios
@@ -256,7 +255,7 @@ GRANT REPLICATION CLIENT ON *.* TO 'wolfxyz'@'%';
 FLUSH PRIVILEGES;
 ```
 
-## Servicios
+## docker-compose
 
 Vamos a ir explicando los servicios a la vez que el bloque de código que los define en el archivo [`docker-compose.yaml`](https://github.com/Wolfxyz16/ipmd-yeray2/blob/main/trabajo-practico-2/docker-compose.yaml).
 
