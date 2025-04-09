@@ -491,11 +491,53 @@ Para la creación de Grafana debemos acceder a su interfaz web desde un navegado
 
 #### [http://localhost:3000/login](http://localhost:3000/login)
 
+Primero debemos iniciar sesión. Las credenciales son wolfxyz wolfxyz.
+
+![Captura de pantalla del inicio de sesión de grafana. Las credenciales son wolfxyz wolfxyz](img/grafana-login.png)
+
+Dentro del panel principal debemos de ir al menu y buscar la opción *Add new connection*.
+
+![Menu de opciones de grafana](img/grafana-menu.png)
+
+Entramos y dentro nos saldrán una lista de diferentes *datasources*. El *datasource* debe de ser de tipo MySQL. Lo seleccionamos y luego en *Add new data source*.
+
+Debemos especificar que el nombre del *data source* sea **mariadb**. La conexión al host dentrá la dirección `172.18.0.10`. El nombre de la base de datos será `ipmd`. Por último sus credenciales serán wolfxyz wolfxyz.
+
+![Captura de pantalla donde se ven las opciones de los data sources](img/grafana-datasource.png)
+
+Seleccionamos la opción al final de la página que dice *Save & test*, y deberiamos ver un cuadrado verde que nos indique que la conexión ha sido exitosa.
+
+Ahora en el menú de grafana seleccionaremos la opción **Dashboards** y dentro la opción de crear un nuevos **Dashboard**.
+
+Dentro de este menú, nos aparecerán tres opciones diferentes. Nosotros debemos seleccionar la que dice **+ Add visualization**.
+
+![Captura de pantalla donde vemos la opcion de grafana que añadir una visualización](img/grafana-dahsboard1.png)
+
+Ahora debemos seleccionar el *data source* que habiamos creado antes.
+
+![Captura de pantalla donde vemos el data source de antes](img/grafana-dashboard2.png)
+
+En este menú de creación de dashboards debemos ahora de seleccionar que tipo de gráfico queremos. A la izquierda del menú tenemos seleccionada la opción de **time-series**. Debemos quitarla y poner **Pie Chart**. Además en la opción de **Value options - show** debemos indicarle **All values**. Tambíen podemos cambiarle el nombre a **summary chart** para hacerlo mas profesional.
+
+![Captura de pantalla del menú de creación de gráficas de grafana donde le indicamos que tiene que ser de tipo circular y que tome todos los valores.](img/grafana-dashboard3.png)
+
+Ahora debemos indicarle que tabla queremos supervisar. Dentro de las opciones de *query* pulsamos en **Code** y añadimos lo siguiente:
+
+```sql
+SELECT * FROM ipmd.summary LIMIT 50 
+```
+
+![Captura de pantalla donde se muestra el comando sql que va a interpretar grafana](img/grafana-dashboard4.png)
+
+Ahora deberiamos ver un gráfico parecido a este donde cada color represanta a un país:
+
+![Captura de pantalla donde vemos el gráfico de circulos final de grafana](img/grafana-dashboard5.png)
+
 ### 7. Paneles de superset
 
 Crearemos una panel a mano mediante superset. 
 
-![Panel para la base de datos](imagenes/grafana_sql.png)
+![Panel para la base de datos]()
 
 ### 8. The end (?)
 
