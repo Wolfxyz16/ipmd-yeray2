@@ -96,8 +96,8 @@ services:
     ports:
       - "8088:8088"
     environment: 
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=wolfxyz
+      - GF_SECURITY_ADMIN_USER=wolfxyz
     networks:
       - mynet
 
