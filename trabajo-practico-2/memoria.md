@@ -410,7 +410,7 @@ git clone https://github.com/Wolfxyz16/ipmd-yeray2.git
 cd ipmd-yeray2/trabajo-practico-2
 ```
 
-3. Construimos la imagen de docker compose:
+2. Construir y arrancar el `docker-compose`
 
 ```bash
 docker compose compose build
@@ -432,50 +432,75 @@ Deberiamos ver los siguientes contenedores
 
 ![Captura de pantalla donde vemos los contenedores que están en funcionamiento](img/docker-ps.png)
 
-4. Acceder a los servicios:
-    ```bash
-    Namenode: http://localhost:9870/
+Debemos esperar unos segundos antes de continuar con la guia con el fin de que todos los contenedores arranquen correctamente, sobre todo la base de datos mariadb.
 
-    Hive: http://localhost:10002/
-    
-    Grafana: http://localhost:3000
+3. Crear la estructura HDFS
 
-    Superset: http://localhost:8088 **Hay que asegurarse de que el servicio estan healthy**
+Ejecutamos el archivo `./init_hdfs.sh` para iniciar correctamente la configuración de namenode y cargar los archivos correctamente en hive:
 
-    ```
-    Añadir imagenes
+```bash
+docker exec -it namenode ./init_hdfs.sh
+```
 
-5. Iniciar la estructura de HDFS
-    ```bash
-    docker exec -it namenode ./init_hdfs.sh
-    ```
+Comprobamos que se ha ejecutado correctamente
 
-6. Comprobamos que tenemos los archivos en HDFS
-    ```
-    docker exec -it datanode-1 hdfs dfs -ls hdfs://namenode/user/hive/userdata
-    docker exec -it datanode-1 hdfs dfs -ls hdfs://namenode/user/hive/estructura
-    ```
-7. Creamos la base de datos en Hive
-    ```
-    docker exec -it hive-server bash
-    beeline -u jdbc:hive2://localhost:10000/ -f hive/init_hive.sql
-    ```
+```bash
+docker exec -it datanode-1 hdfs dfs -ls hdfs://namenode/user/hive/userdata
+docker exec -it datanode-1 hdfs dfs -ls hdfs://namenode/user/hive/estructura
+```
 
-8. Exportar los datos a mariadb
-    ```bash
-    docker exec -it ejecutor python3 ejecutor/export_to_mariadb.py
-    ```
+![Captura de pantalla de una terminal donde se ven el resultado de los dos comandos anteriores](img/hdfs.png)
 
-9. Paneles de grafana
+4. Creamos el servidor hive
 
-    Crearemos una panel a mano mediante grafana. 
+Una vez los datos estan añadidos correctamente nos metemos en el contendor de hive y ejecutamos el `init_hive.sql`:
 
-    hay que cambiar
-    ![Panel para la base de datos](imagenes/grafana_sql.png)
+```bash
+docker exec -it hive-server beeline -u jdbc:hive2://localhost:10000/ -f ./init_hive.sql
+```
 
-10. Paneles de superset
+Tardará unos 10 segundos pero debemos ver que el status es `SUCCEEDED`. Una vez tenemos el servidor hive vamos a ejecutar un comando para comprobar que las tablas se han creado en hive correctamente
 
-    Crearemos una panel a mano mediante superset. 
+```bash
+docker exec hive-server beeline -u jdbc:hive2://localhost:10000/ -e !tables
+```
 
-    hay que cambiar
-    ![Panel para la base de datos](imagenes/grafana_sql.png)
+El resultado que debemos ver es algo parecido a esto:
+
+![Captura de pantalla de una terminal donde vemos las tablas creadas en hive](img/hive-tables.png)
+
+5. Llenar la base de datos, mariadb
+
+El siguiente paso a realizar será pasar la información de las tablas que contiene hive a nuestro servidor mariadb que tenemos desplegado en un contendor. Para ello usaremos un *script* que es encuentra en la carpeta `ejecutor`. Ejecutamos el *script* `init.sh`:
+
+```bash
+./ejecutor/init.sh
+```
+
+Cuando termine el script vamos a ejecutar la siguiente consulta para comprobar que la tabla se ha llenado correctamente.
+
+```bash
+docker exec mariadb mariadb --user=wolfxyz --password=wolfxyz --table ipmd -e "SELECT * FROM summary"
+```
+
+![Captura de pantalla de una terminal donde vemos el resultado de la consulta a la base de datos mariadb](img/mariadb.png)
+
+6. Grafana
+
+Para la creación de Grafana debemos acceder a su interfaz web desde un navegador. Así que vamos a ir a la dirección, 
+
+[## http://localhost:3000/login](http://localhost:3000/login)
+
+7. Paneles de superset
+
+Crearemos una panel a mano mediante superset. 
+
+![Panel para la base de datos](imagenes/grafana_sql.png)
+
+8. The end (?)
+
+Al terminar debemos parar y eliminar todos los contenedores que hemos creado con el siguiente comando:
+
+```bash
+docker compose down --volumes --remove-orphans
+```

@@ -23,7 +23,7 @@ Debemos esperar unos segundos antes de continuar con la guia con el fin de que t
 
 ### Crear la estructura hdfs
 
-Ejecutamos el archivo ./init_hdfs.sh para iniciar correctamente la configuración de namenode y cargar los archivos correctamente en hive
+Ejecutamos el archivo `./init_hdfs.sh` para iniciar correctamente la configuración de namenode y cargar los archivos correctamente en hive:
 
 ```bash
 docker exec -it namenode ./init_hdfs.sh
@@ -44,7 +44,7 @@ Una vez los datos estan añadidos correctamente nos metemos en el contendor de h
 docker exec -it hive-server beeline -u jdbc:hive2://localhost:10000/ -f ./init_hive.sql
 ```
 
-Una vez tenemos el servidor hive vamos a ejecutar un comando para comprobar que las tablas se han creado en hive correctamente
+Tardará unos 10 segundos pero debemos ver que el status es `SUCCEEDED`. Una vez tenemos el servidor hive vamos a ejecutar un comando para comprobar que las tablas se han creado en hive correctamente
 
 ```bash
 docker exec hive-server beeline -u jdbc:hive2://localhost:10000/ -e !tables
@@ -65,6 +65,9 @@ docker exec mariadb mariadb --user=wolfxyz --password=wolfxyz --table ipmd -e "S
 ```
 
 ### Grafana
+[TODO]
+
+### Superset
 [TODO]
 
 ### End
