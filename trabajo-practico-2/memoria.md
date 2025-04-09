@@ -533,11 +533,29 @@ Ahora deberiamos ver un gráfico parecido a este donde cada color represanta a u
 
 ![Captura de pantalla donde vemos el gráfico de circulos final de grafana](img/grafana-dashboard5.png)
 
-### 7. Paneles de superset
+### 7. Panele de superset
 
-Crearemos una panel a mano mediante superset. 
+Superset nos permite también visualizar la tabla summary como alternativa a Grafana.
 
-![Panel para la base de datos]()
+El primer paso será el inicio de sesión donde las credenciales vuelven a ser wolfxyz wolfxyz.
+
+![Captura de pantalla de Superset y de su inicio de sesión](img/superset1.png)
+
+Dentro del **+** que tenemos arriba a la derecha debemos seleccionar la opción *Data > Connect to database*.
+
+Rellenamos el formulario con las siguientes opciones:
+
+* host: 172.18.0.10
+* port: 3306
+* database name: ipmd
+* username: wolfxyz
+* password: wolfxyz
+* display name: Mariadb
+
+![Captura de pantalla de la creación de la conexión con la base de datos](img/superset2.png)
+
+Ahora pulsamos en *create dataset* y pasamos a la siguiente pantalla.
+
 
 ### 8. The end (?)
 
