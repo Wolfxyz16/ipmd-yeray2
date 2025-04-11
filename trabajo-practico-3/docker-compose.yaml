@@ -21,6 +21,10 @@ services:
         MYSQL_PASSWORD: wolfxyz
         MYSQL_DATABASE: ipmd
 
+    generador:
+      image: python:3
+      container_name: generador
+
     kafka:
       image: bitnami/kafka
       container_name: kafka
@@ -30,6 +34,7 @@ services:
 
     jobmanager:
       image: flink:2.0.0-scala_2.12-java21 
+      container_name: jobmanager
       ports:
         - "8081:8081"
       command: jobmanager
@@ -40,6 +45,7 @@ services:
 
     taskmanager:
       image: flink:2.0.0-scala_2.12-java21
+      container_name: taskmanager
       depends_on:
         - jobmanager
       command: taskmanager
