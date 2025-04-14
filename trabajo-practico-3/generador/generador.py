@@ -2,9 +2,18 @@ import json
 import numpy as np
 from datetime import datetime
 import time
+import paho.mqtt.client as mqtt
 
 json_file = 'data/tweets1.json'
 gap = 5
+
+# Definir los parámetros del broker MQTT
+broker = "mqtt.eclipse.org"  # Cambia esta URL por la del broker que estés usando
+port = 1883  # Puerto MQTT estándar (puedes usar otro si es necesario)
+topic = "mi/tema/eventos"  # El tema al que deseas publicar el mensaje
+client_id = "generador"  # Un ID único para tu cliente MQTT
+
+client = mqtt.Client(client_id)
 
 with open(json_file, 'r') as file:
     tweets = json.load(file)

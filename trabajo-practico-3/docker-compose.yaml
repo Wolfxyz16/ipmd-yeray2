@@ -22,8 +22,12 @@ services:
         MYSQL_DATABASE: ipmd
 
     generador:
-      image: python:3
+      build:
+        context: .
+        dockerfile: generador/Dockerfile
       container_name: generador
+      volumes:
+        - ./data:/trabajo-practico-3/data
 
     kafka:
       image: bitnami/kafka
