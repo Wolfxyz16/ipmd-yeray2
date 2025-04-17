@@ -1,71 +1,142 @@
-# Kafka como almacén de datos temporales
-# MariaDB como almacén de datos estructurados
-# ElasticSearch como almacén de datos
-# Flink como motor de SQL para acceder a distintos almacenes
-# Kibana, herramienta de visualización de datos almacenados en ElasticSearch
+#zookeeper: Servicio de coordinación que gestiona el estado del clúster de Kafka. Es requerido para que Kafka funcione correctamente.
+#kafka: Plataforma de mensajería en streaming. Recibe y distribuye los mensajes (tuits) generados por el productor.
+#kafka-mqtt: Proxy que recibe mensajes desde MQTT (donde publica el generador) y los reenvía automáticamente a un tópico Kafka.
+#mariadb: Base de datos relacional donde se cargan los datos estáticos (como mbti_labels.csv) y se consulta desde Flink.
+#generador: Contenedor personalizado que ejecuta un script en Python. Este lee los tuits del dataset y los publica al topic MQTT (tuits).
+#elasticsearch: Base de datos orientada a documentos, utilizada como sumidero para los resultados del procesamiento de Flink.
+#kibana: Herramienta de visualización de datos. Se conecta a Elasticsearch y permite crear gráficos sobre los datos procesados.
+#jobmanager: Nodo maestro de Flink. Coordina las tareas de procesamiento y gestiona el clúster Flink.
+#taskmanager: Nodo de ejecución de Flink. Ejecuta las tareas distribuidas que le asigna el JobManager.
+#sql-client: Cliente interactivo de Flink SQL. Permite definir tablas, consultar datos desde Kafka y MariaDB, y escribir resultados en Elasticsearch.
+
+version: "3.8"
 
 services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.1
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
 
-    mariadb:
-      image: mariadb
-      container_name: mariadb
-      restart: always
-      ports:
-        - "3306:3306"
-      volumes:
-        - ./db:/docker-entrypoint-initdb.d/:ro
-        - ./data/mbti_labels.csv:/var/lib/mysql/mbti_labels.csv
-      environment:
-        MYSQL_ROOT_PASSWORD: root
-        MYSQL_USER: wolfxyz
-        MYSQL_PASSWORD: wolfxyz
-        MYSQL_DATABASE: ipmd
+  kafka:
+    image: confluentinc/cp-kafka:7.4.1
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
 
-    generador:
-      build:
-        context: .
-        dockerfile: generador/Dockerfile
-      container_name: generador
-      volumes:
-        - ./data:/trabajo-practico-3/data
+  kafka-mqtt:
+    image: confluentinc/cp-kafka-mqtt:7.4.1
+    container_name: kafka-mqtt
+    environment:
+      KAFKA_MQTT_BOOTSTRAP_SERVERS: kafka:9092
+      KAFKA_MQTT_TOPIC_REGEX_LIST: tuits:ktuits
+      KAFKA_MQTT_LICENSE_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_MQTT_CONFLUENT_TOPIC_REPLICATION_FACTOR: 1 
+    ports:
+      - "1883:1883"
+    depends_on:
+      - kafka
 
-    kafka:
-      image: bitnami/kafka
-      container_name: kafka
-      ports:
-        - "9092:9092"
-        - "9094:9094"
+  mariadb:
+    image: mariadb
+    container_name: mariadb
+    restart: always
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./db:/docker-entrypoint-initdb.d/:ro
+      - ./data/mbti_labels.csv:/var/lib/mysql/mbti_labels.csv
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: wolfxyz
+      MYSQL_PASSWORD: wolfxyz
+      MYSQL_DATABASE: ipmd
 
-    jobmanager:
-      image: flink:2.0.0-scala_2.12-java21 
-      container_name: jobmanager
-      ports:
-        - "8081:8081"
-      command: jobmanager
-      environment:
-        - |
-          FLINK_PROPERTIES=
-          jobmanager.rpc.address: jobmanager
+  generador:
+    build:
+      context: .
+      dockerfile: generador/Dockerfile
+    container_name: generador
+    volumes:
+      - ./data:/trabajo-practico-3/data
+    depends_on:
+      - kafka-mqtt
 
-    taskmanager:
-      image: flink:2.0.0-scala_2.12-java21
-      container_name: taskmanager
-      depends_on:
-        - jobmanager
-      command: taskmanager
-      environment:
-        - |
-          FLINK_PROPERTIES=
-          jobmanager.rpc.address: jobmanager
-          taskmanager.numberOfTaskSlots: 10
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.6.0
+    environment:
+      - cluster.name=docker-cluster
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - discovery.type=single-node
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
 
-    sql-client:
-      image: flink:2.0.0-scala_2.12
-      command: bin/sql-client.sh
-      depends_on:
-        - jobmanager
-      environment:
-        - |
-          FLINK_PROPERTIES=
-          jobmanager.rpc.address: jobmanager
-          rest.address: jobmanager   
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.17.0
+    container_name: kibana
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch
+
+  jobmanager:
+    image: flink:2.0.0-scala_2.12-java21 
+    container_name: jobmanager
+    ports:
+      - "8081:8081"
+    command: jobmanager
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: jobmanager
+
+  taskmanager:
+    image: flink:2.0.0-scala_2.12-java21
+    container_name: taskmanager
+    depends_on:
+      - jobmanager
+    command: taskmanager
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: jobmanager
+        taskmanager.numberOfTaskSlots: 10
+
+  sql-client:
+    image: flink:2.0.0-scala_2.12
+    container_name: sql-client
+    tty: true
+    stdin_open: true
+    depends_on:
+      - jobmanager
+      - kafka
+      - elasticsearch
+      - mariadb
+    command: >
+      bash -c "sleep 10 && ./bin/sql-client.sh"
+    environment:
+      FLINK_JOBMANAGER_HOST: jobmanager
+      ZOOKEEPER_CONNECT: zookeeper
+      KAFKA_BOOTSTRAP: kafka
+      MYSQL_HOST: mariadb
+      ES_HOST: elasticsearch
