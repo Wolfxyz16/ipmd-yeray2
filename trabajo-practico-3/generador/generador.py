@@ -13,7 +13,7 @@ port = 1883  # Puerto MQTT estándar (puedes usar otro si es necesario)
 topic = "mi/tema/eventos"  # El tema al que deseas publicar el mensaje
 client_id = "generador"  # Un ID único para tu cliente MQTT
 
-client = mqtt.Client(client_id)
+client = mqtt.Client(client_id=client_id, callback_api_version=mqtt.CallbackAPIVersion.VERSION2)
 
 with open(json_file, 'r') as file:
     tweets = json.load(file)
