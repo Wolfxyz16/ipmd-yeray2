@@ -105,6 +105,8 @@ services:
     ports:
       - "8081:8081"
     command: jobmanager
+    volumes:
+      - ./jars:/opt/flink/usrlib
     environment:
       - |
         FLINK_PROPERTIES=
@@ -116,6 +118,8 @@ services:
     depends_on:
       - jobmanager
     command: taskmanager
+    volumes:
+      - ./jars:/opt/flink/usrlib
     environment:
       - |
         FLINK_PROPERTIES=
@@ -127,6 +131,8 @@ services:
     container_name: sql-client
     tty: true
     stdin_open: true
+    volumes:
+      - ./jars:/opt/flink/usrlib
     depends_on:
       - jobmanager
       - kafka
