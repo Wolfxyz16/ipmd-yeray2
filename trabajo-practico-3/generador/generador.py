@@ -83,6 +83,20 @@ client.disconnect()  # Desconectar del broker
 #  'scan.startup.mode' = 'earliest-offset'
 #);
 
+#CREATE TABLE personalities (
+#    id BIGINT,
+#    mbti_personality STRING,
+#    pers_id TINYINT
+#) WITH (
+#    'connector' = 'jdbc',
+#    'url' = 'jdbc:mysql://mariadb:3306/ipmd',
+#    'table-name' = 'mbti_labels',
+#    'username' = 'wolfxyz',
+#    'password' = 'wolfxyz',
+#    'driver' = 'com.mysql.cj.jdbc.Driver'
+#);
+
+
 
 #Flink SQL> CREATE TABLE resultados (
 #>   id STRING,
