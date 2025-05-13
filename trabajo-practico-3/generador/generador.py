@@ -66,7 +66,7 @@ with open(json_file, 'r') as file:
         # Introducir un retraso entre las publicaciones
         time.sleep(gap)
 
-# Detener el cliente MQTT (en caso de que necesites finalizar el proceso)
+# Detener el cliente MQTT (en caso de que se necesite finalizar el proceso)
 client.loop_stop()  # Detener el loop de MQTT
 client.disconnect()  # Desconectar del broker
 
