@@ -71,17 +71,22 @@ client.loop_stop()  # Detener el loop de MQTT
 client.disconnect()  # Desconectar del broker
 
 
+#docker exec -it sql-client /bin/bash
+#./bin/sql-client.sh
+
+
 #CREATE TABLE ktuits (
-#  id STRING,
-#  text STRING,
-#  ts TIMESTAMP(3)
+#    user_id STRING,
+#    tweet STRING,
+#    proctime AS PROCTIME()
 #) WITH (
-#  'connector' = 'kafka',
-#  'topic' = 'ktuits',
-#  'properties.bootstrap.servers' = 'kafka:9092',
-#  'format' = 'json',
-#  'scan.startup.mode' = 'earliest-offset'
+#    'connector' = 'kafka',
+#    'topic' = 'ktuits',
+#    'properties.bootstrap.servers' = 'kafka:9092',
+#    'format' = 'json',
+#    'scan.startup.mode' = 'earliest-offset'
 #);
+
 
 #CREATE TABLE personalities (
 #    id BIGINT,
@@ -96,16 +101,26 @@ client.disconnect()  # Desconectar del broker
 #    'driver' = 'com.mysql.cj.jdbc.Driver'
 #);
 
+#SELECT * FROM ktuits;
+
+#CREATE TABLE count_per_personality (
+#    mbti_personality STRING,
+#    cnt BIGINT,
+#    pers_id TINYINT
+#) WITH (
+#    'connector' = 'elasticsearch-7',
+#    'hosts' = 'http://elasticsearch:9200',
+#    'index' = 'count_per_personality'
+#);
 
 
-#Flink SQL> CREATE TABLE resultados (
-#>   id STRING,
-#>   tipo STRING,
-#>   proba DOUBLE
-#> ) WITH (
-#>   'connector' = 'elasticsearch-7',
-#>   'hosts' = 'http://elasticsearch:9200',
-#>   'index' = 'resultados'
-#> );
-#>
-#[INFO] Execute statement succeeded.
+#CREATE TABLE resultados (
+#   id STRING,
+#   tipo STRING,
+#   proba DOUBLE
+# ) WITH (
+#   'connector' = 'elasticsearch-7',
+#   'hosts' = 'http://elasticsearch:9200',
+#   'index' = 'resultados'
+# );
+
