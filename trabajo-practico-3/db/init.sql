@@ -17,14 +17,13 @@ USE ipmd;
 
 -- Creamos la tabla mbti_labels
 CREATE TABLE IF NOT EXISTS ipmd.mbti_labels (
-    id BIGINT UNSIGNED PRIMARY KEY,
-    mbti_personality ENUM('INTJ', 'INTP', 'ENTJ', 'ENTP', 'INFJ', 'INFP', 'ENFJ', 'ENFP', 
-      'ISTJ', 'ISFJ', 'ESTJ', 'ESFJ', 'ISTP', 'ISFP', 'ESTP', 'ESFP') NOT NULL,
-    pers_id TINYINT UNSIGNED NOT NULL
+    id BIGINT PRIMARY KEY,
+    mbti_personality VARCHAR(10),
+    pers_id TINYINT
 );
 
 -- Cargamos los datos csv a la tabla mbti_labels
-LOAD DATA INFILE './mbti_labels.csv'
+LOAD DATA INFILE '/tmp/data/mbti_labels.csv'
 INTO TABLE mbti_labels
 FIELDS TERMINATED BY ',' 
 LINES TERMINATED BY '\n'

@@ -9,8 +9,6 @@
 #taskmanager: Nodo de ejecución de Flink. Ejecuta las tareas distribuidas que le asigna el JobManager.
 #sql-client: Cliente interactivo de Flink SQL. Permite definir tablas, consultar datos desde Kafka y MariaDB, y escribir resultados en Elasticsearch.
 
-version: "3.8"
-
 services:
   zookeeper:
     image: confluentinc/cp-zookeeper:7.4.1
@@ -19,6 +17,8 @@ services:
       - "2181:2181"
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
+    networks:
+        - ipmd-net
 
   kafka:
     image: confluentinc/cp-kafka:7.4.1
@@ -31,7 +31,10 @@ services:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+    networks:
+        - ipmd-net
 
   kafka-mqtt:
     image: confluentinc/cp-kafka-mqtt:7.4.1
@@ -45,35 +48,42 @@ services:
       - "1883:1883"
     depends_on:
       - kafka
+    networks:
+      - ipmd-net
 
   mariadb:
     image: mariadb
-    container_name: mariadb
     restart: always
     ports:
       - "3306:3306"
     volumes:
       - ./db:/docker-entrypoint-initdb.d/:ro
-      - ./data/mbti_labels.csv:/var/lib/mysql/mbti_labels.csv
+      - ./data/mbti_labels.csv:/tmp/data/mbti_labels.csv
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_USER: wolfxyz
       MYSQL_PASSWORD: wolfxyz
       MYSQL_DATABASE: ipmd
+    networks:
+        - ipmd-net
 
   generador:
     build:
       context: .
       dockerfile: generador/Dockerfile
     container_name: generador
+    command: python ./generador.py
     volumes:
       - ./data:/trabajo-practico-3/data
     depends_on:
       - kafka-mqtt
+    networks:
+      - ipmd-net
 
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.0
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.10
     environment:
+      - ES_JAVA_OPTS=-Dlog4j2.disable.jmx=true
       - cluster.name=docker-cluster
       - bootstrap.memory_lock=true
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
@@ -88,9 +98,11 @@ services:
       nofile:
         soft: 65536
         hard: 65536
+    networks:
+        - ipmd-net
 
   kibana:
-    image: docker.elastic.co/kibana/kibana:7.17.0
+    image: docker.elastic.co/kibana/kibana:7.6.0
     container_name: kibana
     environment:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
@@ -98,51 +110,53 @@ services:
       - "5601:5601"
     depends_on:
       - elasticsearch
+    networks:
+        - ipmd-net
 
   jobmanager:
-    image: flink:2.0.0-scala_2.12-java21 
+    image: flink:1.11.0-scala_2.11
     container_name: jobmanager
     ports:
       - "8081:8081"
     command: jobmanager
-    volumes:
-      - ./jars:/opt/flink/usrlib
     environment:
       - |
         FLINK_PROPERTIES=
         jobmanager.rpc.address: jobmanager
+    networks:
+        - ipmd-net
 
   taskmanager:
-    image: flink:2.0.0-scala_2.12-java21
+    image: flink:1.11.0-scala_2.11
     container_name: taskmanager
     depends_on:
       - jobmanager
     command: taskmanager
-    volumes:
-      - ./jars:/opt/flink/usrlib
     environment:
       - |
         FLINK_PROPERTIES=
         jobmanager.rpc.address: jobmanager
         taskmanager.numberOfTaskSlots: 10
+    networks:
+        - ipmd-net
 
   sql-client:
-    image: flink:2.0.0-scala_2.12
+    image: jark/demo-sql-client:0.2
     container_name: sql-client
-    tty: true
-    stdin_open: true
-    volumes:
-      - ./jars:/opt/flink/usrlib
     depends_on:
-      - jobmanager
       - kafka
+      - jobmanager
       - elasticsearch
-      - mariadb
-    command: >
-      bash -c "sleep 10 && ./bin/sql-client.sh"
     environment:
       FLINK_JOBMANAGER_HOST: jobmanager
       ZOOKEEPER_CONNECT: zookeeper
       KAFKA_BOOTSTRAP: kafka
       MYSQL_HOST: mariadb
       ES_HOST: elasticsearch
+    networks:
+      - ipmd-net
+
+networks:
+  ipmd-net:
+    # Specify driver options
+    driver: bridge

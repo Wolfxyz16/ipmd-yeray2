@@ -7,6 +7,3 @@ RUN pip install --no-cache-dir -r requeriments.txt
 
 COPY ./generador/generador.py .
 RUN chmod +x ./generador.py
-
-
-CMD [ "sh", "-c", "sleep 10 && python generador.py" ]
