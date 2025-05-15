@@ -34,10 +34,11 @@ CREATE TABLE count_per_personality (
   'index' = 'mbti_index'
 );
 
-INSERT INTO count_per_personality 
-  SELECT 
-    mbti_personality, 
-    COUNT(*) AS cnt,
-    pers_id FROM ktuits
-    LEFT JOIN personalities ON ktuits.user_id=personalities.id
-    GROUP BY(mbti_personality, pers_id);
+INSERT INTO count_per_personality
+SELECT    mbti_personality,
+          Count(*) AS cnt,
+          pers_id
+FROM      ktuits
+LEFT JOIN personalities
+ON        ktuits.user_id=personalities.id
+GROUP BY (mbti_personality, pers_id);
