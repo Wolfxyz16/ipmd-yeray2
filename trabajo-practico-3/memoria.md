@@ -25,7 +25,6 @@
 ```
 
 * `docker-compose.yaml`: Orquesta todos los servicios (BD, Flink, Generador, Elasticsearch, etc.) en contenedores.
-* `/jars`: Carpeta en la que almacenaremos los archivos .jar para configurar la conexion entre contenedores.
 * `db/init.sql`: Script SQL que inicializa la base de datos y crea las tablas necesarias. En este trabajo, las tablas creadas son para asegurar la implementación tanto de grafana como de superset
 * `generador.py`: Script para la ejecución del contenedor que va a generar los tweets y publicarlos en el topic ktuits.
 * `download-data.sh`: Script que nos permite descargar los datos con los que vamos a trabajar en un solo paso.
@@ -324,7 +323,7 @@ El servicio sql-client permite ejecutar sentencias SQL sobre streams y tablas de
 
 Vamos a explicar paso a paso como replicar este proyecto.
 
-### 1. Clona el repositorio y accede al directorio del segundo proyecto:
+### 1. Clona el repositorio y accede al directorio del tercer proyecto:
 
 ```bash
 git clone https://github.com/Wolfxyz16/ipmd-yeray2.git
@@ -489,6 +488,5 @@ Dentro del *Bucket*>*X-axis* vamos a seleccionar *mbti_index* como *field* y pon
 
 ![kibana final graph](./img/kibana-final.png) 
 
-> TODO: Me parece que había una forma en kibana para que el grafico fuera en tiempo real y no hiciera falta ir dandole a refrescar
 
 Podemos observar como los datos son en tiempo real si vamos refrescando pulsando en el botón azul que dice *Refresh*.
