@@ -467,4 +467,30 @@ Para la creación de graficas en Kibana debemos acceder a su interfaz web desde 
 
 #### [http://localhost:5601](http://localhost:5601)
 
-TODO
+Dentro de Kibana accedemos a la *Visualize*. Nos pedirán que crear un *index pattern* que vamos a asociar con el *mbti_index*.
+
+![Kibana index patter](./img/kibana-index-pattern.png) 
+
+*Next step* > *Create index pattern*. 
+
+Ahora podremos crear el gráfico de los datos. Vamos a acceder a la parte que indica *dashboard* y seleccionamos *Create a new dashboard*:
+
+![kibana create a new dashboard](./img/kibana-new-dashboard.png) 
+
+Vamos a crear un gráfico de barras verticales para poder ver el recuento de personalidades a medida que el generador va publicando los tweets.
+
+Seleccionamos el índice que hemos creado anteriormente:
+
+![alt text](./img/kibana-new-vertical-bar.png) 
+
+Ahora tendremos que configurar nuestro gráfico para verlo como nosotros queremos. Vamos a crear un nuevo *X-Axis* seleccionando la zona que dice *Buckets*. Cómo agregación vamos a elegir *histogram*.
+
+![w](./img/kibana-bucket-histogram.png) 
+
+Dentro del *Bucket*>*X-axis* vamos a seleccionar *mbti_index* como *field* y ponemos el intervalo mínimo a 0. Luego en la parte del *Y-axis* debemos poner *Max* como *Aggregation* y en *Field* debemos poner *cnt*. Una vez terminemos todo pulsamos sobre el boton de play y podremos ya contemplar el resultado final.
+
+![kibana final graph](./img/kibana-final.png) 
+
+> TODO: Me parece que había una forma en kibana para que el grafico fuera en tiempo real y no hiciera falta ir dandole a refrescar
+
+Podemos observar como los datos son en tiempo real si vamos refrescando pulsando en el botón azul que dice *Refresh*.
