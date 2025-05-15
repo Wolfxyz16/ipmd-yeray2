@@ -2,8 +2,6 @@
 
 ## Estructura del proyecto
 
-
->!Hay que cambiar 
 ```bash
 ├── data
 │   ├── edges1.json
