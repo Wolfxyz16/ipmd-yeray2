@@ -20,7 +20,6 @@
 ├── README.md
 └── sql-client
     ├── Dockerfile
-    ├── proccesData.java
     └── procress-data.sql
 ```
 
